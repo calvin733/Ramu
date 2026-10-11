@@ -77,31 +77,33 @@ test("CSV upload, missing COGS and friendly invalid upload preserve existing dat
     .getByRole("navigation")
     .getByRole("link", { name: "Data", exact: true })
     .click();
+  await page.getByTestId("file-input").setInputFiles({
+    name: "penjualan.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from(
+      "date,order_id,product_name,quantity,unit_price\n2026-09-30,A,Brownie,2,50000\n2026-09-30,B,Brownie,1,50000",
+    ),
+  });
   await page
-    .getByTestId("file-input")
-    .setInputFiles({
-      name: "penjualan.csv",
-      mimeType: "text/csv",
-      buffer: Buffer.from(
-        "date,order_id,product_name,quantity,unit_price\n2026-09-30,A,Brownie,2,50000\n2026-09-30,B,Brownie,1,50000",
-      ),
-    });
+    .getByRole("button", { name: "Konfirmasi & Analisis Data" })
+    .click();
   await expect(page.getByRole("status")).toContainText(
     "Data berhasil dianalisis.",
   );
   await expect(page.getByText("penjualan.csv", { exact: true })).toBeVisible();
+  await page.getByTestId("file-input").setInputFiles({
+    name: "salah.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from("nama,jumlah\nBrownie,3"),
+  });
   await page
-    .getByTestId("file-input")
-    .setInputFiles({
-      name: "salah.csv",
-      mimeType: "text/csv",
-      buffer: Buffer.from("nama,jumlah\nBrownie,3"),
-    });
+    .getByRole("button", { name: "Konfirmasi & Analisis Data" })
+    .click();
   await expect(page.locator(".upload-error")).toContainText(
-    "Format data belum sesuai template RAMU.",
+    "RAMU belum dapat mengenali beberapa bagian data Anda.",
   );
   await expect(page.locator(".upload-error")).toContainText(
-    "date, order_id, product_name, quantity, unit_price",
+    "Pilih kolom tanggal dan pendapatan",
   );
   await expect(page.getByText("penjualan.csv", { exact: true })).toBeVisible();
   await page.getByRole("link", { name: "Lihat Dashboard" }).click();
@@ -150,14 +152,15 @@ test("Excel upload imports case-insensitive sheets and computes exact COGS profi
     .getByRole("navigation")
     .getByRole("link", { name: "Data", exact: true })
     .click();
+  await page.getByTestId("file-input").setInputFiles({
+    name: "bakery.xlsx",
+    mimeType:
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: XLSX.write(book, { type: "buffer", bookType: "xlsx" }),
+  });
   await page
-    .getByTestId("file-input")
-    .setInputFiles({
-      name: "bakery.xlsx",
-      mimeType:
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      buffer: XLSX.write(book, { type: "buffer", bookType: "xlsx" }),
-    });
+    .getByRole("button", { name: "Konfirmasi & Analisis Data" })
+    .click();
   await expect(page.getByRole("status")).toContainText(
     "Data berhasil dianalisis.",
   );
@@ -188,14 +191,15 @@ test("template downloads produce usable files and data resets on full reload", a
   const download = await downloadEvent;
   expect(download.suggestedFilename()).toBe("template-ramu.xlsx");
   const path = await download.path();
+  await page.getByTestId("file-input").setInputFiles({
+    name: download.suggestedFilename(),
+    mimeType:
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: await readFile(path!),
+  });
   await page
-    .getByTestId("file-input")
-    .setInputFiles({
-      name: download.suggestedFilename(),
-      mimeType:
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      buffer: await readFile(path!),
-    });
+    .getByRole("button", { name: "Konfirmasi & Analisis Data" })
+    .click();
   await expect(page.getByRole("status")).toBeVisible();
   await page.reload();
   await page

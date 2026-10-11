@@ -126,6 +126,7 @@ export function createDemoData(): UploadedData {
     transactions,
     products: demoProducts.map((p) => ({ ...p })),
     expenses,
+    expenseCoverage: { start: "2026-04-01", end: "2026-09-30" },
     source: {
       kind: "demo",
       name: "Demo · Ramu Bakery",

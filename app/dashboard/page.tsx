@@ -18,6 +18,7 @@ import { KpiCard } from "@/components/dashboard/kpi-card";
 import { RevenueChart } from "@/components/dashboard/revenue-chart";
 import { ProductTable } from "@/components/dashboard/product-table";
 import { InsightSection } from "@/components/dashboard/insight-section";
+import { DashboardGoals } from "@/components/goals/dashboard-goals";
 import { formatDate, formatPercentage, formatRupiah } from "@/lib/utils";
 
 export default function Dashboard() {
@@ -39,6 +40,7 @@ export default function Dashboard() {
           </Link>
         </Button>
       </div>
+      <DashboardGoals />
       {!metrics || !data ? (
         <>
           <EmptyState />
@@ -118,14 +120,32 @@ export default function Dashboard() {
             />
             <KpiCard
               label="Pesanan"
-              value={metrics.orders.toLocaleString("id-ID")}
+              value={
+                metrics.capabilities.orders
+                  ? metrics.orders.toLocaleString("id-ID")
+                  : "Data belum tersedia"
+              }
+              note={
+                !metrics.capabilities.orders
+                  ? "Tambahkan nomor pesanan"
+                  : undefined
+              }
               growth={metrics.orderGrowth}
               days={metrics.period.days}
               icon={ShoppingBag}
             />
             <KpiCard
               label="Rata-rata Pesanan"
-              value={formatRupiah(metrics.aov)}
+              value={
+                metrics.capabilities.orders
+                  ? formatRupiah(metrics.aov)
+                  : "Data belum tersedia"
+              }
+              note={
+                !metrics.capabilities.orders
+                  ? "Tambahkan nomor pesanan"
+                  : undefined
+              }
               growth={metrics.aovGrowth}
               days={metrics.period.days}
               icon={Receipt}
@@ -186,10 +206,17 @@ export default function Dashboard() {
             insights={insights}
             key={`insights-${data.source.loadedAt}`}
           />
-          <ProductTable
-            products={metrics.products}
-            key={`products-${data.source.loadedAt}`}
-          />
+          {metrics.capabilities.products ? (
+            <ProductTable
+              products={metrics.products}
+              key={`products-${data.source.loadedAt}`}
+            />
+          ) : (
+            <section className="panel capability-note">
+              <h2>Analisis produk belum tersedia</h2>
+              <p>Tambahkan nama produk untuk melihat kinerja produk.</p>
+            </section>
+          )}
           <div className="ask-banner">
             <span className="ask-banner-icon">
               <Sparkles size={24} />

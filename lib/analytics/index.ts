@@ -69,14 +69,18 @@ export function calculateTotals(
   for (const t of transactions) {
     revenue += transactionRevenue(t);
     units += t.quantity;
-    orders.add(t.orderId);
-    const cogs = lookup(t)?.cogs;
+    if (t.orderId) orders.add(t.orderId);
+    const cogs = lookup(t)?.cogs ?? t.cogs;
     if (cogs !== undefined) {
       knownCogs += t.quantity * cogs;
       knownUnits += t.quantity;
     }
   }
-  const complete = transactions.length > 0 && knownUnits === units;
+  const complete =
+    transactions.length > 0 &&
+    units > 0 &&
+    knownUnits === units &&
+    transactions.every((t) => t.quantity > 0);
   const cogs = complete ? knownCogs : null;
   const grossProfit = cogs === null ? null : revenue - cogs;
   return {
@@ -111,6 +115,7 @@ export function calculateProducts(
       : `name:${normalizeName(matched?.name ?? t.productName)}`;
   };
   for (const t of transactions) {
+    if (!t.productName) continue;
     const id = key(t);
     const group = groups.get(id) ?? {
       name: lookup(t)?.name ?? t.productName,
@@ -211,8 +216,19 @@ export function analyzeBusiness(data: UploadedData): BusinessMetrics | null {
       (channelMap.get(channel) ?? 0) + transactionRevenue(t),
     );
   });
+  const capabilities = {
+    orders: current.every((t) => Boolean(t.orderId)),
+    units: current.every((t) => t.quantity > 0),
+    products: current.every((t) => Boolean(t.productName)),
+    expenses: Boolean(
+      data.expenseCoverage &&
+        data.expenseCoverage.start <= currentStart &&
+        data.expenseCoverage.end >= end,
+    ),
+  };
   return {
     ...totals,
+    capabilities,
     period: { start: currentStart, end, days, previousStart, previousEnd },
     dataPeriod: { start, end },
     previous,
@@ -223,9 +239,21 @@ export function analyzeBusiness(data: UploadedData): BusinessMetrics | null {
       totals.grossProfit !== null
         ? growth(totals.grossProfit, previous.grossProfit)
         : null,
-    orderGrowth: previous ? growth(totals.orders, previous.orders) : null,
-    aovGrowth: previous ? growth(totals.aov, previous.aov) : null,
-    products: calculateProducts(current, data.products, previousRows),
+    orderGrowth:
+      previous &&
+      capabilities.orders &&
+      previousRows?.every((t) => Boolean(t.orderId))
+        ? growth(totals.orders, previous.orders)
+        : null,
+    aovGrowth:
+      previous &&
+      capabilities.orders &&
+      previousRows?.every((t) => Boolean(t.orderId))
+        ? growth(totals.aov, previous.aov)
+        : null,
+    products: capabilities.products
+      ? calculateProducts(current, data.products, previousRows)
+      : [],
     trends: {
       day: aggregateTrends(data.transactions, start, end, "day"),
       week: aggregateTrends(data.transactions, start, end, "week"),
@@ -242,9 +270,9 @@ export function analyzeBusiness(data: UploadedData): BusinessMetrics | null {
 
 export const getBusinessOverview = (m: BusinessMetrics) => ({
   revenue: m.revenue,
-  orders: m.orders,
-  units: m.units,
-  aov: m.aov,
+  orders: m.capabilities.orders ? m.orders : null,
+  units: m.capabilities.units ? m.units : null,
+  aov: m.capabilities.orders ? m.aov : null,
   grossProfit: m.grossProfit,
   grossMargin: m.grossMargin,
   revenueGrowth: m.revenueGrowth,
@@ -252,7 +280,9 @@ export const getBusinessOverview = (m: BusinessMetrics) => ({
   period: m.period,
 });
 export const getTopSellingProduct = (m: BusinessMetrics) =>
-  [...m.products].sort((a, b) => b.units - a.units)[0] ?? null;
+  m.capabilities.units
+    ? ([...m.products].sort((a, b) => b.units - a.units)[0] ?? null)
+    : null;
 export const getMostProfitableProduct = (m: BusinessMetrics) =>
   m.products
     .filter((p) => p.grossProfit !== null)

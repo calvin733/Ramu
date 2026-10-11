@@ -8,6 +8,7 @@ export interface Transaction {
   discount: number;
   revenue?: number;
   channel?: string;
+  cogs?: number;
 }
 
 export interface Product {
@@ -28,6 +29,7 @@ export interface UploadedData {
   transactions: Transaction[];
   products: Product[];
   expenses: Expense[];
+  expenseCoverage?: { start: string; end: string };
   source: { name: string; kind: "demo" | "upload"; loadedAt: string };
 }
 
@@ -55,7 +57,14 @@ export interface TrendPoint {
   date: string;
   revenue: number;
 }
+export interface DataCapabilities {
+  orders: boolean;
+  units: boolean;
+  products: boolean;
+  expenses: boolean;
+}
 export interface BusinessMetrics extends Totals {
+  capabilities: DataCapabilities;
   period: {
     start: string;
     end: string;
@@ -88,6 +97,11 @@ export interface ChatMessage {
   mode?: "basic" | "gemini";
 }
 export type Intent =
+  | "goal_progress"
+  | "goal_remaining"
+  | "goal_pace"
+  | "goal_status"
+  | "goal_supporting_products"
   | "overview"
   | "revenue"
   | "profit"

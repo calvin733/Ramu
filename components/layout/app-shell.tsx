@@ -9,6 +9,7 @@ import {
   MessageCircle,
   ShieldCheck,
   Sparkles,
+  Target,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useBusiness } from "@/components/business-provider";
@@ -17,6 +18,7 @@ import { cn } from "@/lib/utils";
 const links = [
   { href: "/dashboard", label: "Dashboard", icon: ChartNoAxesCombined },
   { href: "/data", label: "Data", icon: Database },
+  { href: "/goals", label: "Target Bisnis", icon: Target },
   { href: "/ask", label: "Tanya RAMU", icon: MessageCircle },
 ];
 export function RamuMark({ small = false }: { small?: boolean }) {
