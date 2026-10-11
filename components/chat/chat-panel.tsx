@@ -10,6 +10,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import type { BusinessMetrics, ChatMessage } from "@/lib/types";
+import { useBusiness } from "@/components/business-provider";
 import { buildVerifiedContext } from "@/lib/insights";
 import { requestExplanation } from "@/lib/ai/client";
 import { RamuMark } from "@/components/layout/app-shell";
@@ -17,6 +18,7 @@ import { cn, formatDate } from "@/lib/utils";
 
 const questions = [
   "Bagaimana performa bisnis saya?",
+  "Berapa lagi target pendapatan bulan ini?",
   "Produk apa yang paling laris?",
   "Produk mana yang paling menguntungkan?",
   "Apakah penjualan saya meningkat?",
@@ -29,6 +31,7 @@ export function ChatPanel({
   metrics: BusinessMetrics;
   name: string;
 }) {
+  const { goalProgress } = useBusiness();
   const [messages, setMessages] = useState<ChatMessage[]>([]),
     [question, setQuestion] = useState(""),
     [loading, setLoading] = useState(false);
@@ -59,7 +62,7 @@ export function ChatPanel({
     try {
       const result = await requestExplanation(
         "chat",
-        buildVerifiedContext(metrics, text),
+        buildVerifiedContext(metrics, text, goalProgress),
         text,
       );
       if (mounted.current)

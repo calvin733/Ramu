@@ -68,7 +68,8 @@ export function ProductTable({ products }: { products: ProductMetrics[] }) {
                   </div>
                 </td>
                 <td>
-                  {formatNumber(p.units)} <span className="muted">unit</span>
+                  {p.units > 0 ? formatNumber(p.units) : "—"}{" "}
+                  <span className="muted">unit</span>
                 </td>
                 <td>
                   {p.margin !== null ? (

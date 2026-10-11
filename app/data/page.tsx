@@ -21,11 +21,13 @@ import {
 } from "lucide-react";
 import { useBusiness } from "@/components/business-provider";
 import { Button } from "@/components/ui/button";
+import { DataValidationError, REQUIRED_COLUMNS } from "@/lib/parsers";
 import {
-  DataValidationError,
-  parseFile,
-  REQUIRED_COLUMNS,
-} from "@/lib/parsers";
+  inspectFile,
+  normalizeImport,
+  type ImportDocument,
+} from "@/lib/mapping";
+import { MappingReview } from "@/components/mapping-review";
 import { downloadCsvTemplate, downloadWorkbook } from "@/lib/templates";
 import { cn, formatDate, formatNumber, normalizeName } from "@/lib/utils";
 
@@ -37,6 +39,7 @@ export default function DataPage() {
     [dragging, setDragging] = useState(false),
     [error, setError] = useState<string | null>(null),
     [success, setSuccess] = useState(false);
+  const [document, setDocument] = useState<ImportDocument | null>(null);
   const processing = useRef(false);
   async function upload(file?: File) {
     if (!file || processing.current) return;
@@ -44,11 +47,10 @@ export default function DataPage() {
     setBusy(true);
     setError(null);
     setSuccess(false);
+    setDocument(null);
     try {
       await new Promise((resolve) => setTimeout(resolve, 20));
-      const parsed = await parseFile(file);
-      setData(parsed);
-      setSuccess(true);
+      setDocument(await inspectFile(file));
     } catch (error) {
       setError(
         error instanceof DataValidationError
@@ -63,9 +65,9 @@ export default function DataPage() {
   }
   const productCount = data
     ? new Set(
-        data.transactions.map(
-          (t) => t.productId ?? normalizeName(t.productName),
-        ),
+        data.transactions
+          .filter((t) => t.productName)
+          .map((t) => t.productId ?? normalizeName(t.productName)),
       ).size
     : 0;
   return (
@@ -207,14 +209,39 @@ export default function DataPage() {
           </span>
         </section>
       </div>
+      {document && (
+        <MappingReview
+          document={document}
+          onChange={(updated) =>
+            setDocument((current) => (current === document ? updated : current))
+          }
+          onCancel={() => {
+            setDocument(null);
+            setError(null);
+          }}
+          onConfirm={(complete) => {
+            try {
+              setData(normalizeImport(document, complete));
+              setSuccess(true);
+              setError(null);
+              setDocument(null);
+            } catch (e) {
+              setError(
+                e instanceof Error ? e.message : "Periksa pilihan kolom Anda.",
+              );
+            }
+          }}
+        />
+      )}
       {error && (
         <div className="upload-error" role="alert">
           <TriangleAlert size={22} />
           <div>
-            <h3>Format data belum sesuai template RAMU.</h3>
+            <h3>RAMU belum dapat mengenali beberapa bagian data Anda.</h3>
             <p>{error}</p>
             <p>
-              Kolom minimum: <code>{REQUIRED_COLUMNS.join(", ")}</code>
+              Pilih kolom tanggal dan pendapatan, atau jumlah dan harga. Gunakan
+              Atur Kolom untuk melanjutkan.
             </p>
             <span>Data yang sebelumnya digunakan tetap tersedia.</span>
           </div>
@@ -280,6 +307,23 @@ export default function DataPage() {
               </strong>
             </div>
           </div>
+          <div className="capability-list">
+            <span>Pendapatan ✓</span>
+            <span>
+              Produk{" "}
+              {metrics.capabilities.products ? "✓" : "— Data belum tersedia"}
+            </span>
+            <span>
+              Pesanan{" "}
+              {metrics.capabilities.orders ? "✓" : "— Data belum tersedia"}
+            </span>
+            <span>
+              Margin{" "}
+              {metrics.cogs !== null
+                ? "✓"
+                : "— Data biaya produk belum tersedia"}
+            </span>
+          </div>
           <div className="active-data-bottom">
             <span>
               <Check size={15} />
@@ -309,7 +353,10 @@ export default function DataPage() {
         <div className="panel-heading">
           <div>
             <h2>Format sederhana, insight bermakna.</h2>
-            <p>Mulai dari template berikut. Tak perlu mengubah nama kolom.</p>
+            <p>
+              Gunakan file bisnis Anda atau template. RAMU dapat mengenali nama
+              kolom Indonesia dan Inggris.
+            </p>
           </div>
           <div className="template-actions">
             <Button variant="secondary" onClick={() => downloadWorkbook()}>
@@ -325,8 +372,11 @@ export default function DataPage() {
         <div className="sheet-guide">
           <div>
             <span className="sheet-label">WAJIB</span>
-            <h3>transactions</h3>
-            <p>Setiap baris adalah satu produk dalam pesanan.</p>
+            <h3>Penjualan</h3>
+            <p>
+              Tanggal dan pendapatan sudah cukup. Nomor pesanan, produk, jumlah,
+              dan harga memperkaya analisis.
+            </p>
             <div className="column-chips">
               {REQUIRED_COLUMNS.map((c) => (
                 <code key={c}>{c}</code>
@@ -338,7 +388,7 @@ export default function DataPage() {
           </div>
           <div>
             <span className="sheet-label optional">OPSIONAL</span>
-            <h3>products</h3>
+            <h3>Produk</h3>
             <p>Tambahkan biaya per unit untuk menghitung laba kotor.</p>
             <div className="column-chips">
               <code>product_name</code>
@@ -348,7 +398,7 @@ export default function DataPage() {
           </div>
           <div>
             <span className="sheet-label optional">OPSIONAL</span>
-            <h3>expenses</h3>
+            <h3>Biaya Operasional</h3>
             <p>Catat biaya operasional secara terpisah dari COGS.</p>
             <div className="column-chips">
               <code>date</code>
@@ -381,8 +431,8 @@ export default function DataPage() {
               (biaya per unit) diisi.
             </li>
             <li>
-              XLSX memerlukan sheet transactions. Nama sheet tidak membedakan
-              huruf besar dan kecil; sheet lainnya diabaikan.
+              Nama sheet bebas, misalnya Penjualan, Master Produk, dan Biaya.
+              Periksa jenis data dan kolom sebelum konfirmasi.
             </li>
             <li>
               Unggahan baru menggantikan data sebelumnya. Data hilang setelah

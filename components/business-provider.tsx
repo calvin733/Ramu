@@ -4,6 +4,7 @@ import {
   useContext,
   useMemo,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import type {
@@ -15,7 +16,22 @@ import { analyzeBusiness } from "@/lib/analytics";
 import { createDemoData } from "@/lib/demo";
 import { generateInsights } from "@/lib/insights";
 
+import {
+  calculateGoal,
+  type BusinessGoal,
+  type GoalProgress,
+} from "@/lib/goals";
+import {
+  readGoals,
+  serverGoals,
+  subscribeGoals,
+  writeGoals,
+} from "@/lib/goals/store";
+
 interface BusinessState {
+  goals: BusinessGoal[];
+  goalProgress: GoalProgress[];
+  setGoals: (goals: BusinessGoal[]) => void;
   data: UploadedData | null;
   metrics: BusinessMetrics | null;
   insights: BusinessInsight[];
@@ -25,6 +41,11 @@ interface BusinessState {
 const BusinessContext = createContext<BusinessState | null>(null);
 export function BusinessProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<UploadedData | null>(null);
+  const goals = useSyncExternalStore(subscribeGoals, readGoals, serverGoals);
+  const goalProgress = useMemo(
+    () => goals.filter((g) => g.enabled).map((g) => calculateGoal(g, data)),
+    [goals, data],
+  );
   const metrics = useMemo(() => (data ? analyzeBusiness(data) : null), [data]);
   const insights = useMemo(
     () => (metrics ? generateInsights(metrics) : []),
@@ -33,6 +54,9 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
   return (
     <BusinessContext.Provider
       value={{
+        goals,
+        goalProgress,
+        setGoals: writeGoals,
         data,
         metrics,
         insights,

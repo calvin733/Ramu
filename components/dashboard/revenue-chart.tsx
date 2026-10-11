@@ -82,7 +82,7 @@ export function RevenueChart({ metrics }: { metrics: BusinessMetrics }) {
               axisLine={false}
               minTickGap={35}
               tickMargin={12}
-              tick={{ fontSize: 11, fill: "#879087" }}
+              tick={{ fontSize: 12, fill: "#879087" }}
               tickFormatter={(date: string) =>
                 formatDate(
                   date,
@@ -96,7 +96,7 @@ export function RevenueChart({ metrics }: { metrics: BusinessMetrics }) {
               tickLine={false}
               axisLine={false}
               width={76}
-              tick={{ fontSize: 11, fill: "#879087" }}
+              tick={{ fontSize: 12, fill: "#879087" }}
               tickFormatter={shortMoney}
             />
             <Tooltip

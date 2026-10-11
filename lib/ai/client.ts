@@ -1,6 +1,6 @@
 import type { VerifiedContext } from "@/lib/insights";
 export async function requestExplanation(
-  route: "explain" | "chat",
+  route: "explain" | "chat" | "goals",
   context: VerifiedContext,
   question?: string,
 ): Promise<{ text: string; mode: "basic" | "gemini" }> {

@@ -117,28 +117,56 @@ function requireColumns(rows: Row[], fields: string[], sheet: string) {
   if (missing.length)
     fail(`Kolom yang belum tersedia di ${sheet}: ${missing.join(", ")}.`);
 }
-export function parseTransactions(input: Row[]): {
+export function parseTransactions(
+  input: Row[],
+  flexible = false,
+): {
   transactions: Transaction[];
   inlineProducts: Product[];
 } {
   const rows = normalizeRows(input);
-  requireColumns(rows, REQUIRED_COLUMNS, "transactions");
+  requireColumns(rows, flexible ? ["date"] : REQUIRED_COLUMNS, "transactions");
+  if (
+    flexible &&
+    !("revenue" in rows[0]) &&
+    !("quantity" in rows[0] && "unit_price" in rows[0])
+  )
+    fail("Kolom pendapatan atau jumlah dan harga belum tersedia.");
   const inline = new Map<string, Product>();
   const transactions = rows.map((r, i): Transaction => {
     const row = i + 2,
-      name = text(r.product_name, "product_name", row)!,
+      name =
+        text(
+          r.product_name,
+          "product_name",
+          row,
+          !flexible || "product_name" in r,
+        ) ?? "",
       id = text(r.product_id, "product_id", row, false);
-    const quantity = number(r.quantity, "quantity", row)!;
-    if (quantity <= 0 || !Number.isInteger(quantity))
+    const quantity =
+      number(r.quantity, "quantity", row, flexible && !("quantity" in r)) ?? 0;
+    if (
+      (!(flexible && !("quantity" in r)) && quantity <= 0) ||
+      !Number.isInteger(quantity)
+    )
       fail(
         `Baris ${row}: quantity harus berupa bilangan bulat lebih dari nol.`,
       );
-    const price = number(r.unit_price, "unit_price", row)!,
+    const price =
+        number(
+          r.unit_price,
+          "unit_price",
+          row,
+          flexible && !("unit_price" in r),
+        ) ?? 0,
       discount = number(r.discount, "discount", row, true) ?? 0;
-    if (discount > quantity * price)
+    if (
+      discount > quantity * price &&
+      (!flexible || ("quantity" in r && "unit_price" in r))
+    )
       fail(`Baris ${row}: discount tidak boleh melebihi nilai penjualan.`);
     const cogs = number(r.cogs, "cogs", row, true);
-    if (cogs !== undefined) {
+    if (cogs !== undefined && name) {
       const key = id ? `id:${id}` : `name:${normalizeName(name)}`;
       if (inline.has(key) && inline.get(key)!.cogs !== cogs)
         fail(`Baris ${row}: COGS produk ${name} tidak konsisten.`);
@@ -146,14 +174,21 @@ export function parseTransactions(input: Row[]): {
     }
     return {
       date: parseDate(r.date, row),
-      orderId: text(r.order_id, "order_id", row)!,
+      orderId:
+        text(r.order_id, "order_id", row, !flexible || "order_id" in r) ?? "",
       productId: id,
       productName: name,
       quantity,
       unitPrice: price,
       discount,
-      revenue: number(r.revenue, "revenue", row, true),
+      revenue: number(
+        r.revenue,
+        "revenue",
+        row,
+        !flexible || ("quantity" in r && "unit_price" in r),
+      ),
       channel: text(r.channel, "channel", row, false),
+      cogs,
     };
   });
   return { transactions, inlineProducts: [...inline.values()] };

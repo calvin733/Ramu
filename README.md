@@ -2,11 +2,11 @@
 
 **Ramu data. Temukan peluang.**
 
-RAMU helps small business owners understand sales, product performance, and practical opportunities. All application UI is in Bahasa Indonesia. This is a working, focused MVP with no login, database, subscriptions, or permanent storage.
+RAMU is a focused Next.js MVP with a Bahasa Indonesia interface: Dashboard, Data Bisnis, Target Bisnis, and Tanya RAMU. It reuses deterministic analytics for financial values and treats Gemini as optional assistance. No authentication, database, payments, background notifications, or external business integrations.
 
-## Quick start
+## Setup
 
-Use Node.js 22.13+ (tested with Node.js 24.19) and npm. From the existing checkout:
+Use Node.js 22.13+ (tested with Node.js 24.19) and npm:
 
 ```bash
 cd /workspace/Ramu
@@ -14,126 +14,136 @@ npm ci
 npm run dev
 ```
 
-Open the development server on port 3000. `/` redirects to `/dashboard`. Routes: `/dashboard`, `/data`, `/ask`.
-
-In this cloud environment, npm needs a writable cache:
+The development server binds to `0.0.0.0:3000`; `/` redirects to `/dashboard`. In this cloud workspace, use a writable npm cache if needed:
 
 ```bash
 npm --cache /workspace/.npm-cache ci
 ```
 
-## Features
+Optional: copy `.env.example` to `.env.local`, set `GEMINI_API_KEY`, and restart the server. Never commit keys or put them in a `NEXT_PUBLIC_` variable. All features work without a key.
 
-- Six months of reproducible Indonesian bakery demo data: April–September 2026, six products, three channels, weekend demand, promotions, growth and varied margins.
-- Local XLSX/CSV parsing, required-column validation, friendly errors, and template downloads.
-- Deterministic revenue, unique orders, units, AOV, COGS, gross profit, gross margin, product contribution, comparable growth, and daily/weekly/monthly trends.
-- Dashboard with data-driven KPI cards, Recharts revenue chart, channel breakdown, product table, and 2–4 rule-based insights.
-- Tanya RAMU with suggested questions and deterministic answers, plus optional Gemini explanations.
-- Responsive navigation, accessible form labels, reduced-motion support, and a text table for chart values.
+## Smart Data Import
 
-## Try demo mode and Excel uploads
+1. Upload XLSX or CSV on `/data`. RAMU reads the file locally and proposes sheet classifications and column matches.
+2. Review **Kolom File → Dibaca Sebagai → Status**. Change the data type or column dropdowns, or ignore irrelevant sheets/columns. Confidence appears as **Tinggi** or **Perlu dicek**.
+3. If needed, choose **Biarkan RAMU Membantu** for an optional Gemini suggestion. Without a key or during provider failure, deterministic matching and manual controls remain available.
+4. Click **Konfirmasi & Analisis Data**. Only then are rows validated, converted locally, and used for analytics. A failed import preserves the previous dataset.
+5. Review the available capabilities and open Dashboard.
 
-1. Click **Gunakan Data Demo** on Dashboard or Data. All values come from the generated transactions, not hardcoded KPI values.
-2. On **Data**, click **Unduh data demo** to export a complete bakery workbook.
-3. Upload that workbook with **Upload Excel / CSV**, or drag and drop it. Click **Lihat Dashboard** after validation.
-4. Alternatively, download **Template Excel**, replace its example rows, and upload it. The template includes `transactions`, `products`, and `expenses` sheets.
-5. Download **Template CSV** to try transaction-only uploads. CSV costs are optional; add a `cogs` column with the product's cost per unit if available.
-6. Try **Tanya RAMU** with the suggested questions. It works without an API key.
+Sheet names are flexible, including Penjualan, Sales, Transaksi April, Orders, Data Penjualan, Produk, Master Produk, Biaya, Expenses, and Pengeluaran. Users can explicitly classify any sheet as sales, products, expenses, or ignored. Multiple sales sheets can be combined, up to the normalized transaction limit.
 
-Data is held in React context across client-side navigation. A full refresh or closing the tab clears both business data and chat. New uploads replace the current dataset; failed uploads preserve it. Uploaded data is never combined with demo costs.
+Aliases match without case, spaces, or punctuation differences. Examples:
 
-## Optional Gemini configuration
+| RAMU reads | Example source column names |
+| --- | --- |
+| Date | date, Tanggal, Tgl, Transaction Date, Tanggal Transaksi, Order Date, Created At |
+| Order number | order_id, Invoice, No Invoice, Order Number, Nomor Transaksi |
+| Product | product_name, Produk, Nama Barang, Item |
+| Units | quantity, Qty, Jumlah, Units, Jumlah Barang |
+| Unit price | unit_price, Harga, Harga Satuan, Price, Harga Jual |
+| Revenue | revenue, Omzet, Pendapatan, Sales Amount, Total Penjualan |
+| Discount | discount, Diskon, Potongan |
+| Channel | channel, Kanal, Platform, Marketplace |
+| Product cost per unit | cogs, HPP, Harga Pokok, Biaya Produk |
+| Expense category/amount | Kategori Biaya / Nominal, Category / Amount |
 
-Create `.env.local` locally using `.env.example` as a template:
-
-```dotenv
-GEMINI_API_KEY=
-```
-
-Enter your own key in `.env.local` or inject `GEMINI_API_KEY` through secure environment settings, then restart the server. Never commit keys or use `NEXT_PUBLIC_GEMINI_API_KEY`. No key is required to use RAMU.
-
-The official `@google/genai` SDK runs exclusively in the Node.js server routes:
-
-- `POST /api/ai/explain`
-- `POST /api/ai/chat`
-
-Requests contain only bounded, validated metric summaries and rule-based insights. No raw transaction rows, uploaded files, or credentials are sent from the browser to Gemini. The browser computes metrics deterministically; the stateless server validates their structure, not their provenance. This is intentionally a single-session analysis tool, not an accounting audit service.
-
-Gemini uses `gemini-2.5-flash` to explain these metrics; it is instructed never to calculate new financial metrics or invent missing information. Generated explanations are assistance, not verified accounting output; KPI values always remain deterministic. Missing keys, timeouts, provider failures, and empty responses fall back to deterministic answers. The server timeout is 12 seconds; the client also has a timeout. In a restricted cloud network, enable `generativelanguage.googleapis.com` for live Gemini requests. Live provider access requires a valid user-supplied key; integration tests use a mocked SDK.
-
-## Expected data format
-
-Only `.xlsx` and `.csv` are accepted, up to 10 MB and 50,000 data rows per sheet. CSV is interpreted as transaction data. XLSX sheet names match case-insensitively; unrelated sheets are ignored.
-
-| Sheet          | Required columns                                             | Optional columns                                       |
-| -------------- | ------------------------------------------------------------ | ------------------------------------------------------ |
-| `transactions` | `date`, `order_id`, `product_name`, `quantity`, `unit_price` | `product_id`, `discount`, `revenue`, `channel`, `cogs` |
-| `products`     | `product_name`                                               | `product_id`, `category`, `selling_price`, `cogs`      |
-| `expenses`     | `date`, `category`, `amount`                                 | `description`                                          |
-
-Only `transactions` is required. Optional sheets may be empty. Headers are trimmed and lowercased. Products can be matched by ID, falling back to normalized names. Duplicate product IDs/names and inconsistent inline costs are rejected rather than guessed. Explicit product records take precedence over transaction-level costs.
-
-- Dates: `YYYY-MM-DD`, `DD/MM/YYYY`, or native Excel date cells. Impossible dates are rejected.
-- Numbers: plain nonnegative numeric values, without `Rp` or thousands separators. Quantity must be a positive integer.
-- Discount is the total discount per transaction line, not a percentage or a per-unit value, and cannot exceed the line's pre-discount revenue.
-- When supplied, explicit `revenue` is authoritative, including zero. Otherwise: `quantity × unit_price − discount`.
-- `cogs` is cost per unit. It may be omitted; known zero cost remains valid.
-- Negative returns/refunds and fractional quantities are outside this MVP. No AI column mapping or automatic financial corrections are performed.
-
-Example CSV:
+For example, both files below are useful:
 
 ```csv
-date,order_id,product_name,quantity,unit_price,discount,channel
-2026-09-30,A001,Fudgy Brownie,2,50000,0,WhatsApp
-2026-09-30,A002,Fudgy Brownie,1,50000,0,Offline
+Tanggal,No Invoice,Nama Barang,Qty,Harga,Diskon
+2026-09-30,A001,Brownie,2,50000,0
 ```
 
-With product COGS of Rp20.000, this example yields Rp150.000 revenue, 2 orders, 3 units, Rp75.000 AOV, Rp60.000 COGS, Rp90.000 gross profit, and 60% gross margin.
+```csv
+Tanggal,Total Penjualan
+2026-09-30,150000
+```
 
-## Metric and comparison semantics
+Downloads for **Template Excel**, **Template CSV**, and the six-month bakery demo remain available. Templates use canonical English headers as examples, but those names are not required in the UI importer.
 
-Financial calculations are pure TypeScript functions. Orders count distinct `order_id`, including multi-product orders. Product rankings are computed separately by revenue, units, profit, or margin as appropriate.
+### Capabilities and validation
 
-Dashboard KPI cards, product rankings, channels, insights, and chat use the latest 30 days **in the uploaded data**, compared with the preceding 30 days. When the dataset spans fewer than 60 days, equal adjacent windows of `floor(span / 2)` days are used. One-day datasets have no comparison. The UI shows exact current and previous date ranges. A zero revenue baseline produces no growth percentage. Profit growth is also unavailable if the previous profit is nonpositive or either period has missing costs.
+- Date plus revenue enables revenue and trend analysis.
+- Date plus quantity and unit price enables calculated revenue. Explicit revenue takes precedence, including zero.
+- Orders/AOV require actual order identifiers on all relevant rows. RAMU does not count rows as orders or invent IDs.
+- Product analytics require product names; missing names disable the product table. Unit rankings require quantities.
+- Total gross profit/margin require quantity and known per-unit costs for every relevant row. Missing cost data remains unavailable; known zero cost is valid.
+- Expenses are never inferred from missing data. To support net profit, classify an expense sheet and explicitly confirm that operating expenses are complete for the uploaded period, including days without expenses.
+- Dates support `YYYY-MM-DD`, `DD/MM/YYYY`, and native Excel date cells. Impossible dates are rejected.
+- Transaction numeric cells must be plain numbers (no `Rp` or thousands separators in CSV). Quantities must be positive integers. Discount is a total per line, not a percentage, and cannot exceed a known pre-discount line total.
+- Files: `.xlsx` / `.csv`, up to 10 MB, 16 workbook sheets, 100 columns per sheet, and 50,000 rows per sheet / normalized sales dataset. Password-protected and damaged files are rejected.
+- Duplicate destination columns, inconsistent product costs, duplicate product records, invalid numbers, and invalid AI proposals are rejected with reviewable feedback.
 
-The trend chart covers **the entire uploaded dataset**, clearly labeled separately from the KPI period. Its default aggregation is monthly for a long dataset, weekly for a medium dataset, and daily for a short dataset; users can switch. Calendar weeks begin on Monday, with edge weeks possibly partial. Missing days are filled with zero revenue.
+The legacy strict parser exports remain available for existing callers/tests. The application importer uses `lib/mapping` to adapt flexible schemas before calling the validated parsers.
 
-Total COGS, gross profit and margin are shown only when **all sold products in the analyzed period have known COGS**. Product-level profit remains available for products with complete costs. Coverage is measured as the percentage of sold units with known costs. Margin is unavailable when revenue is zero. Gross profit is before operational expenses; expenses are separately included in supported profit answers, never silently deducted from gross profit.
-
-## Architecture and project structure
+## Privacy and AI architecture
 
 ```text
-Business files → parser → TypeScript analytics → calculated metrics
-  → deterministic insights/answers → optional Gemini explanation → user
-
-app/
-  dashboard/              Business dashboard
-  data/                   Uploads, file summary, templates
-  ask/                    Tanya RAMU
-  api/ai/{chat,explain}/   Server-only Gemini endpoints
-components/
-  business-provider.tsx   Session-scoped React context
-  layout/                 Sidebar, header, navigation
-  dashboard/              KPIs, chart, products, insights
-  chat/                   Chat interface
-  ui/                     Reusable shadcn-style button using Radix Slot
-lib/
-  analytics/              Pure deterministic functions
-  parsers/                XLSX/CSV parsing and validation
-  demo/                   Seeded bakery dataset
-  insights/               Rules, intent detection, verified context
-  ai/                     Client requests and server-only provider
-  types.ts                Domain interfaces
-  utils.ts                Rupiah, number, date and formatting helpers
-  templates.ts            Downloadable XLSX and CSV samples
-tests/
-  *.test.ts               Analytics, parser and mocked provider tests
-  e2e/                    Real-browser acceptance flows
+File stays in browser → local workbook inspection → deterministic aliases
+  → optional schema-only Gemini suggestion → user review
+  → local conversion → deterministic analytics → verified goal calculations
+  → optional Gemini explanation
 ```
 
-Stack: Next.js 16 App Router, React 19, TypeScript, Tailwind CSS 4, Radix Slot, Lucide, Recharts, PapaParse, SheetJS CE 0.20.3, Zod, Google GenAI SDK, Vitest, Playwright. Manrope is packaged locally, so startup and builds do not require a remote font service.
+`POST /api/ai/map-data` accepts only bounded sheet IDs/names, column names, and inferred types. **No cell examples or row values are sent**, even for apparently harmless columns. Suspected PII columns (email, phone, address, customer names, NIK, account/card numbers, and related aliases) are excluded. The server repeats this filtering, rejects unexpected raw-data fields, validates proposals with Zod, and rejects unknown columns/sheets, invalid targets/confidences, duplicate mappings, and incompatible sheet/field combinations. Every proposal still needs user confirmation.
 
-The official SheetJS CDN is blocked by this cloud's current egress policy. The `xlsx` dependency uses the npm-distributed `@e965/xlsx` 0.20.3 mirror through an alias, rather than the older `xlsx` 0.18.5 registry release. The lockfile pins the artifact and its integrity. Imports and APIs remain `xlsx`. See the dependency declaration if changing distribution later.
+`POST /api/ai/chat`, `/api/ai/explain`, and `/api/ai/goals` accept bounded metric summaries, deterministic answers, goal progress, and relevant aggregate product contributions. No raw transaction rows or files are sent. Names of products and source columns are metadata; avoid putting personal information in those names. All inputs are untrusted data, not model instructions.
+
+The official `@google/genai` SDK runs server-side with `gemini-2.5-flash`, a 12-second provider timeout, and a 16-second client timeout. Gemini helps recognise structure, explain existing metrics, and suggest actions to consider. It must not calculate financial values or goal progress, invent product/channel performance, guarantee success, or claim causation. Keys remain server-only. Missing keys, timeouts, provider errors, invalid mapping responses, or empty explanations fall back to deterministic behavior. Tests mock provider responses; live Gemini requires a valid key and access to `generativelanguage.googleapis.com`.
+
+As a stateless, single-session MVP, server routes validate the structure and bounds of summaries supplied by the client, not their accounting provenance. AI prose is assistance; displayed KPI and goal values are always calculated locally.
+
+## Business Goals
+
+Create, edit, and delete multiple goals on `/goals`:
+
+- Pendapatan: Rupiah.
+- Penjualan: Pesanan or Unit Terjual, positive integers.
+- Laba Kotor: revenue minus complete product costs.
+- Laba Bersih: gross profit minus confirmed, complete operating expenses for the goal period. This is a simplified result before tax or any other unprovided costs, not an audited net income figure.
+
+Periods are daily, monthly, and yearly. Target inputs accept `100000000` or Indonesian formatting such as `Rp100.000.000`. Zero, negative, malformed, nonfinite, and excessively large targets are rejected. Duplicate metric + period combinations produce a warning and require editing the existing goal instead.
+
+Goals persist locally under **`ramu.businessGoals.v1`**, as `{ version: 1, goals: [...] }`. Versioned Zod validation, bounded record counts, and safe JSON parsing prevent corrupt or unrecognised stored values from crashing the app. Reads never overwrite invalid/future-version data automatically. Browser storage failures produce a helpful save error. Changes synchronize between tabs. Clearing browser storage removes goals.
+
+Sales data and chat still live only in the current browser session: refresh clears those, while goals remain and explain that business data must be loaded again.
+
+### Deterministic formulas
+
+Goal calculations in `lib/goals` operate on transactions in the goal's calendar period, through its reference date. Future rows are excluded. They do not use Dashboard's rolling comparison window.
+
+- **Reference date:** today in Asia/Jakarta if data includes the current goal calendar period; otherwise the latest transaction date. Both the latest data date and reference date are shown.
+- **Actual:** summed revenue, distinct order IDs, summed units, gross profit, or supported net profit.
+- **Progress:** `actual / target × 100`; values can exceed 100% or be negative for losses. The visual bar is bounded to 0–100%.
+- **Remaining:** `max(0, target − actual)`.
+- **Days elapsed:** calendar days from period start through reference date, inclusive. Days remaining exclude the reference day; daily periods therefore have zero full days remaining.
+- **Expected progress:** `daysElapsed / totalCalendarDays × 100`, including leap years.
+- **Pace:** completed at ≥100%; ahead if progress exceeds expected by more than 5 percentage points; behind if more than 5 points below; otherwise on-track.
+- **Required daily pace:** `remaining / daysRemaining`; zero when achieved, unavailable if an unfinished target has no days remaining. Historical completed periods explicitly state that no days remain.
+
+Unavailable metrics remain null and explain missing data; they do not become fictional zeroes. Product contribution insights are calculated for the goal period and describe **revenue** contribution, without claiming equivalent profit/order contribution. Expense coverage must include the whole goal period through the reference date, not just any expense record. The demo's complete expense coverage is April–September 2026; outside that range net profit is unavailable.
+
+Dashboard displays at most three active goals, practical in-app reminders, and a link to all goals. Goal cards contain deterministic progress/pace insights and optional Gemini explanations. Tanya RAMU understands progress, remaining amount, pace, status, and supporting-product questions, including yearly targets. All of this works without Gemini. No email, push, or WhatsApp reminders are implemented.
+
+## Existing analytics and demo
+
+The bakery demo retains six products, three channels, and six reproducible months (April–September 2026). Dashboard KPIs, rankings, channels, and business insights compare the latest 30 days in the data with the preceding 30 days. Short datasets use equal adjacent windows of `floor(span / 2)` days; one-day data has no comparison. Zero revenue baselines do not produce growth percentages.
+
+The revenue chart covers the entire dataset with daily/weekly/monthly aggregation, zero-filled missing dates, and an accessible data table. Calendar weeks begin Monday. Gross margin is unavailable at zero revenue; product-level profitability remains available when its costs are complete. Uploaded costs never inherit another dataset's costs. Explicit product records take precedence over transaction-level costs.
+
+## Project structure
+
+- `app/{dashboard,data,ask,goals}`: application routes.
+- `app/api/ai`: optional server-side Gemini endpoints.
+- `components/business-provider.tsx`: session data, business analytics, persistent goals, and goal progress.
+- `components/mapping-review.tsx`: classification and column review.
+- `components/goals`: reusable goal cards and dashboard summary.
+- `lib/mapping`: aliases, local file inspection, safe metadata, suggestion validation, local normalization.
+- `lib/goals`: validated models, local storage adapter, period arithmetic, deterministic calculations and answers.
+- `lib/analytics`, `lib/parsers`, `lib/demo`, `lib/insights`: existing calculation and validation foundations.
+- `tests`: unit/integration and Playwright acceptance tests.
+
+Stack: Next.js 16 App Router, React 19, TypeScript, Tailwind 4, Radix Slot, Lucide, Recharts, PapaParse, SheetJS CE, Zod, Google GenAI SDK, Vitest, Playwright. Manrope is packaged locally. The lockfile uses `xlsx` as an npm alias for `@e965/xlsx` 0.20.3 because the official SheetJS CDN was unavailable during initial setup; imports remain `xlsx`.
 
 ## Validation
 
@@ -141,33 +151,25 @@ The official SheetJS CDN is blocked by this cloud's current egress policy. The `
 npm test
 npm run typecheck
 npm run lint
+GEMINI_API_KEY= PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium CI=1 npm run test:e2e
 npm run build
 ```
 
-Unit tests exercise revenue, orders, AOV, COGS, profit, margins, products, comparison windows, missing costs, zero revenue, trends, demo reproducibility, parser errors, chat intents, bounded AI context, and provider success/failure.
+If system Chromium is unavailable, install Playwright's browser with `npx playwright install chromium` and omit `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`. Browser tests must run without a Gemini key for predictable provider-independent results. The test runner starts a development server on port 3000.
 
-Browser tests cover the actual demo flow, chart controls, deterministic chat, CSV and XLSX imports, invalid-file recovery, template round trips, session reset, and mobile layouts:
+Tests cover the existing analytics/parser/provider behavior, multilingual and manual mapping, incomplete data, schema privacy, rejected AI proposals and outages, daily/monthly/yearly goals, reference dates, expenses/cost availability, target parsing, status/pace, storage corruption/persistence, chat integration, template imports, and laptop/mobile layouts.
 
-```bash
-npx playwright install chromium
-npm run test:e2e
-```
-
-If Chromium is already installed (as in this cloud environment), avoid downloading another browser:
-
-```bash
-PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e
-```
-
-The test runner starts the app when needed or reuses a running development server on port 3000. Provider-independent acceptance tests should run without `GEMINI_API_KEY`. Playwright browser downloads otherwise require `cdn.playwright.dev` and the Chrome download destination permitted by your network.
-
-Production:
+Production locally:
 
 ```bash
 npm run build
 npm start
 ```
 
-## Deliberate MVP limits
+## Vercel deployment
 
-No authentication, permanent storage, multi-business support, inventory, customer analytics, forecasting, or integrations. Chat handles current-period revenue, gross profit, best sellers, profitability, margins, growth, overview, and warnings. Unsupported questions return an insufficient-data response. It does not infer causality, forecast future sales, retain chat across routes, or analyze arbitrary periods selected in a question. XLSX is the preferred full-data upload format; multi-file CSV merging is not implemented.
+Import this repository/branch into Vercel, choose the **Next.js** preset and Node.js **24.x**, and leave standard install/build/output settings (`npm ci`, `npm run build`, automatic output). If importing the whole repository, the application root is the repository root. Add `GEMINI_API_KEY` only to server environment variables if desired, then redeploy after changing it. It is optional. Next.js route handlers provide the entire server layer; no separate backend, database, or persistent filesystem is required.
+
+## MVP limits
+
+No authentication, permanent transaction storage, multi-business workspaces, multi-file CSV merging, inventory, customer analytics, integrations, or automated notifications. Goals are scoped to this browser, not a shared account. Data must be reloaded after refresh. Mapping expects the first row to contain column titles; merged multi-row headers and arbitrary locale/currency cleanup require preparation. Costs are per unit; negative returns and fractional quantities remain unsupported. Progress describes the supplied data, so incomplete transaction history can understate results. Chat does not forecast or guarantee future results, and supports only the documented business/goal intents. Gemini suggestions and prose require user judgment; deterministic figures remain the source of truth.
