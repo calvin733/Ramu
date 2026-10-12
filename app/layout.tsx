@@ -4,6 +4,7 @@ import { BusinessProvider } from "@/components/business-provider";
 import { AppShell } from "@/components/layout/app-shell";
 import "@fontsource-variable/manrope";
 import "./globals.css";
+import "./glass.css";
 
 export const metadata: Metadata = {
   title: "RAMU — AI Business Copilot",

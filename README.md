@@ -13,6 +13,27 @@ RAMU is a focused Next.js MVP with a Bahasa Indonesia interface: Dashboard, Data
 
 The provider retains only confirmed mapping labels and the source load timestamp for presentation across navigation. This session-only summary contains no uploaded rows, changes no calculation, and adds no database or localStorage format. Capability availability describes the existing Dashboard analysis window; each goal continues to validate its own calendar period independently.
 
+## RAMU Liquid Glass Design System
+
+RAMU retains sage/green, locally packaged Manrope, readable type, and the four page responsibilities above. `app/glass.css` defines the atmospheric background and shared `--ramu-*` tokens: background, sage, surfaces, green/text/muted colors, glass strengths, borders/dividers, highlights, shadows, radii, blur, and 180 ms interaction timing. The existing `--green`, `--ink`, and related tokens reference this palette. Main headings remain 32–36 px, body 15–16 px, controls 14–15 px, and supporting text at least 12 px.
+
+**CSS glass is the default.** The floating sidebar, light sticky desktop topbar, KPI/goal cards, compact context, and shared insight/product/capability panels use translucent fills, backdrop blur, restrained shadows, and inset highlights. Charts, mapping tables, and forms use a more opaque surface. Rows and table cells are plain content within shared surfaces; goal coaching uses a subtle nested CSS section.
+
+**WebGL2 is a selective enhancement.** The selected navigation pill and one key control (Upload, Tambah Target, or the Tanya RAMU composer) can receive `LiquidGlass`. `GlassButton` explicitly opts in; other primary, secondary, and ghost buttons keep the CSS hierarchy. React owns the semantic control and its text; the canvas is decorative, hidden from assistive technology, and cannot intercept input. GPU code is dynamically imported in a client effect after the control is visible and idle time is available. It never initializes during SSR.
+
+The renderer adapts shape-distance masks, shape-aware normals, edge/rim refraction, blur, and tinting from [`dashersw/liquid-glass-js`](https://github.com/dashersw/liquid-glass-js), reviewed at revision `78cb6ccb0b9987bb60a88b14ccbd13a9e6e8ab2a`. The isolated adaptation lives in `components/glass/renderer.ts`; the original MIT copyright and license are preserved in `components/glass/LICENSE.liquid-glass-js`. The vanilla DOM construction, demo styling, continuous nested render loop, and html2canvas page capture are not bundled.
+
+### Fallbacks and performance
+
+- At most **two WebGL contexts** can exist simultaneously. The renderer caps device pixel ratio at 1.5 and each canvas at roughly 160,000 pixels; blur uses five texture samples instead of the reference's large kernel.
+- Rendering is event-driven: initial paint, coalesced resize/scroll/pointer events. There is **no continuous animation loop** and no GPU draw while idle. Renderer listeners, pending frames, resize observers, buffers, shaders, textures, and contexts are released on unmount, hidden elements/tabs, or fallback. The lightweight visibility/media observers remain until unmount so an eligible control can resume its enhancement; they are also disconnected during unmount.
+- The shader refracts a cached 512 × 320 brand-atmosphere texture. It does **not** capture or refract moving page content or business text, and no uploaded data is sampled. Nested panels stay CSS-only. This keeps text sharp and avoids repeated page rasterization or expensive texture chains.
+- CSS glass is used below 900 px, for coarse pointers, reduced motion, data-saving mode, and reported low-memory/low-core devices. Known software GPU backends (including SwiftShader and llvmpipe) are detected once and use CSS glass for the session, without CPU shader rendering. Missing WebGL2, initialization/shader failure, context loss, or missing required observer/media APIs also retain the CSS surface without an error message.
+- `prefers-reduced-motion` disables WebGL and UI animation, and chat scrolling uses immediate positioning. Toggling the preference tears down active GPU resources.
+- Modern Chrome/Edge, Firefox, and Safari can use backdrop-filter (including the WebKit prefix) and optional WebGL2. Browsers without backdrop-filter receive solid, readable surfaces. WebGL support and visual intensity depend on browser/GPU policy; the application never relies on it for functionality.
+
+The adapted renderer intentionally enhances the background layer only. Native DOM buttons, labels, focus-visible outlines, status text, at least 44 px touch controls, and ordinary form/chat behavior remain available in every mode. Mobile uses lighter CSS blur and the existing four-item navigation, with no additional pages.
+
 ## Setup
 
 Use Node.js 22.13+ (tested with Node.js 24.19) and npm:

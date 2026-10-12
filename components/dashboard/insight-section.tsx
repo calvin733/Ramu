@@ -1,5 +1,5 @@
 "use client";
-import { useState, type CSSProperties } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import {
   ArrowUpRight,
@@ -14,6 +14,7 @@ import type { BusinessInsight, BusinessMetrics } from "@/lib/types";
 import { buildVerifiedContext } from "@/lib/insights";
 import { Button } from "@/components/ui/button";
 import { requestExplanation } from "@/lib/ai/client";
+import { GlassSurface } from "@/components/glass/glass-surface";
 
 const categories = {
   opportunity: { label: "Peluang", icon: Lightbulb },
@@ -44,7 +45,7 @@ export function InsightSection({
     }
   }
   return (
-    <section className="insights-section">
+    <GlassSurface className="insights-section insight-unified">
       <div className="section-heading">
         <div>
           <div className="heading-with-icon">
@@ -61,12 +62,7 @@ export function InsightSection({
           </Link>
         </Button>
       </div>
-      <div
-        className="insight-grid"
-        style={
-          { "--insight-count": Math.max(1, preview.length) } as CSSProperties
-        }
-      >
+      <div className="insight-grid">
         {preview.map((i) => {
           const { label, icon: Icon } = categories[i.kind];
           return (
@@ -122,6 +118,6 @@ export function InsightSection({
         <ShieldCheck size={13} /> Angka dihitung dari data bisnis Anda. RAMU
         membantu menjelaskannya.
       </div>
-    </section>
+    </GlassSurface>
   );
 }

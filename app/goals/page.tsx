@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Plus, Target } from "lucide-react";
 import { useBusiness } from "@/components/business-provider";
 import { Button } from "@/components/ui/button";
+import { GlassButton } from "@/components/glass/glass-button";
 import { GoalCard } from "@/components/goals/goal-card";
 import { GoalForm } from "@/components/goals/goal-form";
 import {
@@ -66,10 +67,10 @@ export default function GoalsPage() {
           <h1>Target Bisnis</h1>
           <p>Tetapkan tujuan dan pantau kemajuan bisnis Anda.</p>
         </div>
-        <Button onClick={add}>
+        <GlassButton onClick={add}>
           <Plus size={18} />
           Tambah Target
-        </Button>
+        </GlassButton>
       </div>
       {error && (
         <p className="upload-error" role="alert">

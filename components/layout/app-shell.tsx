@@ -14,6 +14,8 @@ import {
 import type { ReactNode } from "react";
 import { useBusiness } from "@/components/business-provider";
 import { cn } from "@/lib/utils";
+import { GlassSurface } from "@/components/glass/glass-surface";
+import { LiquidGlass } from "@/components/glass/liquid-glass";
 
 const links = [
   { href: "/dashboard", label: "Dashboard", icon: ChartNoAxesCombined },
@@ -39,7 +41,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <a href="#konten" className="skip-link">
         Lewati ke konten
       </a>
-      <aside className="sidebar">
+      <GlassSurface as="aside" className="sidebar">
         <Link
           href="/dashboard"
           className="brand"
@@ -62,8 +64,12 @@ export function AppShell({ children }: { children: ReactNode }) {
               key={href}
               href={href}
               aria-current={pathname === href ? "page" : undefined}
-              className={cn("nav-link", pathname === href && "active")}
+              className={cn(
+                "nav-link",
+                pathname === href && "active liquid-host",
+              )}
             >
+              {pathname === href && <LiquidGlass />}
               <Icon size={19} strokeWidth={1.7} />
               <span>{label}</span>
               {pathname === href && <span className="nav-dot" />}
@@ -88,7 +94,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span>VERSI 0.1</span>
           </div>
         </div>
-      </aside>
+      </GlassSurface>
       <div className="main-shell">
         <header className="topbar">
           <div className="breadcrumb">

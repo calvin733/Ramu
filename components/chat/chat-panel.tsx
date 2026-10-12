@@ -14,6 +14,8 @@ import { buildVerifiedContext } from "@/lib/insights";
 import { requestExplanation } from "@/lib/ai/client";
 import { RamuMark } from "@/components/layout/app-shell";
 import { cn } from "@/lib/utils";
+import { LiquidGlass } from "@/components/glass/liquid-glass";
+import { GlassPill } from "@/components/glass/glass-pill";
 
 export function ChatPanel({ metrics }: { metrics: BusinessMetrics }) {
   const { goalProgress } = useBusiness();
@@ -54,7 +56,12 @@ export function ChatPanel({ metrics }: { metrics: BusinessMetrics }) {
   }, []);
   useEffect(() => {
     if (messages.length)
-      end.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      end.current?.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "auto"
+          : "smooth",
+        block: "nearest",
+      });
   }, [messages, loading]);
   async function send(value: string) {
     const text = value.trim();
@@ -158,9 +165,9 @@ export function ChatPanel({ metrics }: { metrics: BusinessMetrics }) {
                 <span className="message-author">
                   {m.role === "user" ? "Anda" : "RAMU"}
                   {m.mode && (
-                    <span className="message-mode">
+                    <GlassPill className="message-mode">
                       {m.mode === "gemini" ? "Dibantu AI" : "Analisis dasar"}
-                    </span>
+                    </GlassPill>
                   )}
                 </span>
                 <p>{m.content}</p>
@@ -185,12 +192,13 @@ export function ChatPanel({ metrics }: { metrics: BusinessMetrics }) {
           </div>
         )}
         <form
-          className="chat-form"
+          className="chat-form liquid-host"
           onSubmit={(e) => {
             e.preventDefault();
             void send(question);
           }}
         >
+          <LiquidGlass />
           <label htmlFor="question" className="sr-only">
             Pertanyaan untuk RAMU
           </label>

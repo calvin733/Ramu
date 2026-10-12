@@ -22,6 +22,8 @@ import type { UploadedData } from "@/lib/types";
 import type { MappingSummaryData } from "./mapping-summary";
 import { downloadCsvTemplate, downloadWorkbook } from "@/lib/templates";
 import { cn } from "@/lib/utils";
+import { GlassSurface } from "@/components/glass/glass-surface";
+import { GlassButton } from "@/components/glass/glass-button";
 
 export function UploadDataSection({
   replacing,
@@ -84,7 +86,7 @@ export function UploadDataSection({
           Data aktif tetap digunakan sampai data pengganti berhasil diproses.
         </p>
       )}
-      <div className="upload-grid">
+      <GlassSurface as="div" className="upload-grid upload-onboarding">
         <section
           className={cn("panel upload-panel", dragging && "drag-active")}
           onDragOver={(e) => {
@@ -121,10 +123,10 @@ export function UploadDataSection({
                 ? "Mengenali sheet dan kolom sebelum Anda mengonfirmasi."
                 : "Tarik file ke sini atau pilih dari perangkat Anda."}
             </p>
-            <Button disabled={busy} onClick={() => input.current?.click()}>
+            <GlassButton disabled={busy} onClick={() => input.current?.click()}>
               <FileSpreadsheet size={17} />
               Upload Excel / CSV
-            </Button>
+            </GlassButton>
             <input
               ref={input}
               data-testid="file-input"
@@ -191,7 +193,7 @@ export function UploadDataSection({
             Data ilustrasi · April–September 2026
           </span>
         </section>
-      </div>
+      </GlassSurface>
       {document && (
         <MappingReview
           document={document}

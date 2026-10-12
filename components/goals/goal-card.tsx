@@ -6,6 +6,7 @@ import { buildVerifiedContext } from "@/lib/insights";
 import { requestExplanation } from "@/lib/ai/client";
 import { formatDate, formatPercentage } from "@/lib/utils";
 import { GoalPaceMessage, GoalProgressBar } from "./goal-progress";
+import { GlassPill } from "@/components/glass/glass-pill";
 import {
   formatGoalValue,
   goalInsight,
@@ -36,9 +37,12 @@ export function GoalCard({
           {metricLabels[p.goal.metric]} {periodLabels[p.goal.period]}
         </h3>
         {p.paceStatus && (
-          <span className={`goal-badge ${p.paceStatus}`}>
+          <GlassPill
+            className={`goal-badge ${p.paceStatus}`}
+            tone={p.paceStatus === "behind" ? "amber" : "sage"}
+          >
             {statusLabels[p.paceStatus]}
-          </span>
+          </GlassPill>
         )}
       </div>
       <p className="supporting">
