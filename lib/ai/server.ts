@@ -1,6 +1,7 @@
 import "server-only";
 import { GoogleGenAI } from "@google/genai";
 import { z } from "zod";
+import { GEMINI_MODEL, logGeminiError, logGeminiRequest } from "@/lib/ai/config";
 
 const amount = z.number().finite().nonnegative().max(1e30);
 const signed = z.number().finite().min(-1e30).max(1e30);
@@ -160,14 +161,17 @@ export async function handleAi(
     );
   const fallback = { text: body.context.fallback, mode: "basic" };
   const key = process.env.GEMINI_API_KEY;
-  if (!key || body.context.intent === "unknown") return Response.json(fallback);
+  if (body.context.intent === "unknown") return Response.json(fallback);
+  logGeminiRequest(route);
+  if (!key) return Response.json(fallback);
+  let phase: "request" | "response" = "request";
   try {
     const ai = new GoogleGenAI({
       apiKey: key,
       httpOptions: { timeout: 12000 },
     });
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: GEMINI_MODEL,
       contents: JSON.stringify({
         question:
           route === "chat"
@@ -183,11 +187,12 @@ export async function handleAi(
         maxOutputTokens: 1500,
       },
     });
+    phase = "response";
     const text = response.text?.trim();
-    return Response.json(
-      text ? { text: text.slice(0, 12000), mode: "gemini" } : fallback,
-    );
-  } catch {
+    if (!text) throw new Error("Empty Gemini response");
+    return Response.json({ text: text.slice(0, 12000), mode: "gemini" });
+  } catch (error) {
+    logGeminiError(route, error, phase);
     return Response.json(fallback);
   }
 }
