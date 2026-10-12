@@ -32,7 +32,10 @@ test("demo dashboard, charts, product rankings, insights and fallback chat", asy
     page.getByRole("img", { name: /Pendapatan bulanan/ }),
   ).toBeVisible();
   await expect(page.locator(".insight-card").nth(1)).toBeVisible();
-  expect(await page.locator(".insight-card").count()).toBeLessThanOrEqual(4);
+  expect(await page.locator(".insight-card").count()).toBeLessThanOrEqual(3);
+  await expect(page.locator(".product-preview-list li")).toHaveCount(3);
+  await expect(page.locator(".product-table")).toHaveCount(0);
+  await page.getByText("Lihat Analisis Produk", { exact: true }).click();
   await expect(page.locator(".product-table tbody tr")).toHaveCount(5);
   await page.getByRole("button", { name: "Lihat semua" }).click();
   await expect(page.locator(".product-table tbody tr")).toHaveCount(6);
@@ -40,6 +43,7 @@ test("demo dashboard, charts, product rankings, insights and fallback chat", asy
   await expect(
     page.getByRole("img", { name: /Pendapatan mingguan/ }),
   ).toBeVisible();
+  await page.getByText("Penjelasan tambahan", { exact: true }).click();
   await page.getByRole("button", { name: "Jelaskan dengan RAMU" }).click();
   await expect(page.locator(".ai-explanation")).toContainText(
     "Penjelasan RAMU",
@@ -75,7 +79,7 @@ test("CSV upload, missing COGS and friendly invalid upload preserve existing dat
 }) => {
   await page
     .getByRole("navigation")
-    .getByRole("link", { name: "Data", exact: true })
+    .getByRole("link", { name: "Data Bisnis", exact: true })
     .click();
   await page.getByTestId("file-input").setInputFiles({
     name: "penjualan.csv",
@@ -88,9 +92,10 @@ test("CSV upload, missing COGS and friendly invalid upload preserve existing dat
     .getByRole("button", { name: "Konfirmasi & Analisis Data" })
     .click();
   await expect(page.getByRole("status")).toContainText(
-    "Data berhasil dianalisis.",
+    "Data berhasil diproses",
   );
   await expect(page.getByText("penjualan.csv", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Ganti Data", exact: true }).click();
   await page.getByTestId("file-input").setInputFiles({
     name: "salah.csv",
     mimeType: "text/csv",
@@ -112,8 +117,9 @@ test("CSV upload, missing COGS and friendly invalid upload preserve existing dat
   ).toBeVisible();
   await expect(page.getByText("Rp75.000", { exact: true })).toBeVisible();
   await expect(page.locator(".kpi-card").nth(1)).toContainText(
-    "Data biaya belum tersedia",
+    "Data belum tersedia",
   );
+  await page.getByText("Lihat Analisis Produk", { exact: true }).click();
   await expect(page.locator(".product-table tbody tr").first()).toContainText(
     "-",
   );
@@ -150,7 +156,7 @@ test("Excel upload imports case-insensitive sheets and computes exact COGS profi
   );
   await page
     .getByRole("navigation")
-    .getByRole("link", { name: "Data", exact: true })
+    .getByRole("link", { name: "Data Bisnis", exact: true })
     .click();
   await page.getByTestId("file-input").setInputFiles({
     name: "bakery.xlsx",
@@ -162,10 +168,11 @@ test("Excel upload imports case-insensitive sheets and computes exact COGS profi
     .getByRole("button", { name: "Konfirmasi & Analisis Data" })
     .click();
   await expect(page.getByRole("status")).toContainText(
-    "Data berhasil dianalisis.",
+    "Data berhasil diproses",
   );
   await page.getByRole("link", { name: "Lihat Dashboard" }).click();
   await expect(page.getByText("Rp90.000", { exact: true })).toBeVisible();
+  await page.getByText("Lihat Analisis Produk", { exact: true }).click();
   await expect(page.locator(".product-table")).toContainText("60%");
   await page
     .getByRole("navigation")
@@ -184,7 +191,7 @@ test("template downloads produce usable files and data resets on full reload", a
 }) => {
   await page
     .getByRole("navigation")
-    .getByRole("link", { name: "Data", exact: true })
+    .getByRole("link", { name: "Data Bisnis", exact: true })
     .click();
   const downloadEvent = page.waitForEvent("download");
   await page.getByRole("button", { name: "Template Excel" }).click();
@@ -222,8 +229,10 @@ test("responsive mobile routes stay within the viewport", async ({ page }) => {
   ).toBe(true);
   await page
     .getByRole("navigation")
-    .getByRole("link", { name: "Data", exact: true })
+    .getByRole("link", { name: "Data Bisnis", exact: true })
     .click();
+  await expect(page.locator(".upload-dropzone")).toHaveCount(0);
+  await page.getByRole("button", { name: "Ganti Data", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Upload Excel / CSV" }),
   ).toBeVisible();

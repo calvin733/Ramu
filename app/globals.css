@@ -3058,3 +3058,388 @@ textarea {
   font-size: 14px;
   color: var(--green-dark);
 }
+
+/* Page roles: source status, executive summary, goal tracking, conversation. */
+.data-through {
+  display: block;
+  margin-top: 8px;
+  color: var(--text);
+  font-size: 13px;
+}
+.dashboard-page > .revenue-panel {
+  margin-bottom: 30px;
+}
+.dashboard-page .insights-section {
+  margin-bottom: 26px;
+}
+.section-heading,
+.heading-with-icon {
+  flex-wrap: wrap;
+}
+.insight-next-step,
+.insight-explanation-disclosure,
+.product-detail-disclosure,
+.goal-coaching {
+  font-size: 14px;
+}
+.insight-next-step {
+  margin-top: 14px;
+}
+.insight-next-step summary,
+.insight-explanation-disclosure summary,
+.product-detail-disclosure summary,
+.goal-coaching summary {
+  cursor: pointer;
+  color: var(--green-dark);
+  padding: 10px 0;
+  min-height: 44px;
+  font-weight: 600;
+}
+.insight-explanation-disclosure {
+  margin-top: 12px;
+}
+.insight-assurance {
+  justify-content: flex-start;
+  padding-bottom: 0;
+}
+.goal-preview-card {
+  padding: 20px;
+  min-width: 0;
+}
+.goal-preview-card h3 {
+  font-size: 18px;
+}
+.goal-preview-values {
+  margin: 14px 0;
+  overflow-wrap: anywhere;
+}
+.goal-preview-values strong {
+  font-size: 21px;
+}
+.goal-preview-values span {
+  color: var(--text);
+  font-size: 14px;
+}
+.goal-preview-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-top: 10px;
+  font-size: 14px;
+}
+.goal-preview-card .goal-reminder,
+.goal-preview-card .goal-missing {
+  margin-top: 14px;
+  font-size: 14px;
+}
+.product-preview {
+  overflow: hidden;
+}
+.product-preview-list {
+  list-style: none;
+  padding: 0 24px;
+}
+.product-preview-list li {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+}
+.product-rank {
+  color: var(--green-dark);
+  font-size: 14px;
+}
+.product-preview-list li > strong {
+  overflow-wrap: anywhere;
+}
+.product-preview-list li > div {
+  text-align: right;
+}
+.product-preview-list li > div span {
+  display: block;
+  font-size: 13px;
+  color: var(--text);
+}
+.product-detail-disclosure {
+  padding: 4px 24px 14px;
+}
+.product-detail-disclosure .products-panel {
+  margin: 8px 0;
+  box-shadow: none;
+}
+.data-page .active-data {
+  margin-top: 0;
+  border-color: #b8d2b7;
+}
+.active-data .processed-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--green-dark);
+  font-size: 15px;
+  margin-top: 6px;
+}
+.active-data h2 {
+  scroll-margin-top: 170px;
+}
+.active-filename {
+  padding: 0 24px 16px;
+  font-size: 22px;
+  overflow-wrap: anywhere;
+}
+.active-data .data-summary-grid {
+  grid-template-columns: 1fr 1fr 1.6fr 1fr;
+  margin: 0;
+}
+.data-summary-grid dt {
+  color: var(--text);
+  font-size: 13px;
+}
+.data-summary-grid dd {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.data-source-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 24px 20px;
+}
+.data-capabilities,
+.mapping-summary,
+.import-help {
+  margin-top: 24px;
+}
+.capability-statuses {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0 24px 20px;
+}
+.capability-statuses li {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 4px 9px;
+  padding: 14px;
+  border-radius: 8px;
+  background: var(--soft);
+  font-size: 15px;
+}
+.capability-statuses li svg {
+  margin-top: 3px;
+  color: var(--green-dark);
+}
+.capability-statuses li span {
+  grid-column: 2;
+  font-size: 13px;
+}
+.capability-statuses .unavailable {
+  background: #fcf8ee;
+}
+.capability-statuses .unavailable svg {
+  color: #85603c;
+}
+.capability-explanations {
+  padding: 0 24px 20px;
+}
+.capability-explanations p {
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+.capability-explanations .supporting,
+.session-note {
+  font-size: 13px;
+}
+.session-note {
+  margin-top: 20px;
+}
+.upload-data-section {
+  margin-top: 24px;
+}
+.replacement-note {
+  margin-bottom: 16px;
+  font-size: 15px;
+}
+.mapping-summary {
+  padding: 24px;
+}
+.mapping-summary h2 {
+  font-size: 20px;
+}
+.mapping-summary-sheet {
+  margin-top: 20px;
+}
+.mapping-summary-sheet h3 {
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+.mapping-pairs {
+  margin-top: 8px;
+}
+.mapping-pairs > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+.mapping-pairs dt,
+.mapping-pairs dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 15px;
+}
+.goals-page .goal-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.goal-data-note {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  padding: 16px 20px;
+  background: var(--soft);
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+.goals-empty h2 {
+  margin: 10px 0;
+  font-size: 20px;
+}
+.goals-empty .button {
+  margin-top: 16px;
+}
+.paused-goals,
+.goal-chat-link {
+  margin-top: 26px;
+}
+.paused-goals h2 {
+  font-size: 20px;
+}
+.paused-goals .goal-grid {
+  margin-top: 16px;
+}
+.paused-goal-card {
+  padding: 24px;
+  min-width: 0;
+}
+.paused-goal-card h3 {
+  font-size: 18px;
+}
+.paused-goal-card p {
+  margin: 12px 0;
+  overflow-wrap: anywhere;
+}
+.ask-page .chat-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+.chat-data-context {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  padding: 16px 22px;
+  margin-bottom: 20px;
+}
+.chat-data-context > div {
+  flex: 1;
+  min-width: 160px;
+}
+.chat-data-context strong,
+.chat-data-context p span {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.chat-data-context .supporting {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+.chat-data-context p,
+.chat-data-context p span {
+  font-size: 13px;
+}
+.chat-data-context strong {
+  font-size: 15px;
+}
+.chat-data-assurance {
+  margin-top: 14px;
+  font-size: 13px;
+}
+.chat-panel .question-grid button {
+  font-size: 14px;
+  min-height: 44px;
+}
+.chat-welcome {
+  max-width: 640px;
+}
+.chat-panel .chat-messages-empty {
+  align-items: flex-start;
+}
+.chat-panel .chat-form textarea {
+  font-size: 16px;
+}
+@media (max-width: 1100px) {
+  .capability-statuses,
+  .active-data .data-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .goals-page .goal-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 640px) {
+  .active-filename {
+    padding: 0 18px 12px;
+    font-size: 20px;
+  }
+  .capability-statuses {
+    grid-template-columns: 1fr;
+    padding: 0 18px 18px;
+  }
+  .capability-explanations,
+  .data-source-actions {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+  .active-data .data-summary-grid {
+    padding-left: 18px;
+    padding-right: 18px;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .mapping-summary {
+    padding: 18px;
+  }
+  .product-preview-list {
+    padding: 0 18px;
+  }
+  .product-preview-list li {
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 6px 10px;
+  }
+  .product-preview-list li > div {
+    grid-column: 2;
+    text-align: left;
+  }
+  .product-detail-disclosure {
+    padding: 0 18px 12px;
+  }
+  .chat-data-context {
+    padding: 16px;
+    gap: 10px;
+  }
+  .chat-data-context > div,
+  .chat-data-context > p {
+    flex: 1 1 100%;
+  }
+  .chat-panel .question-grid {
+    grid-template-columns: 1fr;
+  }
+}

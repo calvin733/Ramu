@@ -12,7 +12,11 @@ import {
 import { useBusiness } from "@/components/business-provider";
 import { Button } from "@/components/ui/button";
 
-export function EmptyState() {
+export function EmptyState({
+  purpose = "dashboard",
+}: {
+  purpose?: "dashboard" | "ask";
+}) {
   const { loadDemo } = useBusiness(),
     router = useRouter();
   return (
@@ -31,27 +35,30 @@ export function EmptyState() {
       <span className="eyebrow">LANGKAH KECIL, PELUANG BESAR</span>
       <h2>Belum ada data bisnis</h2>
       <p>
-        Tambahkan data transaksi untuk mulai mendapatkan
-        <br className="desktop-break" /> insight dari RAMU.
+        {purpose === "ask"
+          ? "Tambahkan data agar RAMU dapat menjawab pertanyaan tentang bisnis Anda."
+          : "Tambahkan data untuk melihat ringkasan kondisi bisnis Anda."}
       </p>
       <div className="empty-actions">
         <Button asChild>
           <Link href="/data">
             <Upload size={17} />
-            Upload Data
+            Tambahkan Data
           </Link>
         </Button>
-        <Button
-          variant="secondary"
-          onClick={() => {
-            loadDemo();
-            router.push("/dashboard");
-          }}
-        >
-          <Sparkles size={17} />
-          Gunakan Data Demo
-          <ArrowRight size={16} />
-        </Button>
+        {purpose === "dashboard" && (
+          <Button
+            variant="secondary"
+            onClick={() => {
+              loadDemo();
+              router.push("/dashboard");
+            }}
+          >
+            <Sparkles size={17} />
+            Gunakan Data Demo
+            <ArrowRight size={16} />
+          </Button>
+        )}
       </div>
       <div className="empty-features">
         <span>

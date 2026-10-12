@@ -3,6 +3,7 @@ import { Sparkles } from "lucide-react";
 import { useBusiness } from "@/components/business-provider";
 import { EmptyState } from "@/components/empty-state";
 import { ChatPanel } from "@/components/chat/chat-panel";
+import { ChatContext } from "@/components/chat/chat-context";
 export default function AskPage() {
   const { data, metrics } = useBusiness();
   return (
@@ -13,7 +14,7 @@ export default function AskPage() {
           <h1>
             Tanya RAMU<span className="title-dot">.</span>
           </h1>
-          <p>Tanyakan apa pun tentang data bisnis Anda.</p>
+          <p>Tanyakan sesuatu tentang bisnis Anda.</p>
         </div>
         <span className="page-label">
           <Sparkles size={16} />
@@ -21,13 +22,16 @@ export default function AskPage() {
         </span>
       </div>
       {metrics && data ? (
-        <ChatPanel
-          metrics={metrics}
-          name={data.source.name}
-          key={data.source.loadedAt}
-        />
+        <>
+          <ChatContext data={data} metrics={metrics} />
+          <ChatPanel metrics={metrics} key={data.source.loadedAt} />
+          <p className="supporting chat-data-assurance">
+            RAMU menggunakan ringkasan metrik bisnis yang telah dihitung. File
+            mentah tidak dikirim ke AI.
+          </p>
+        </>
       ) : (
-        <EmptyState />
+        <EmptyState purpose="ask" />
       )}
     </div>
   );

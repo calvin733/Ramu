@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 
 const links = [
   { href: "/dashboard", label: "Dashboard", icon: ChartNoAxesCombined },
-  { href: "/data", label: "Data", icon: Database },
+  { href: "/data", label: "Data Bisnis", icon: Database },
   { href: "/goals", label: "Target Bisnis", icon: Target },
   { href: "/ask", label: "Tanya RAMU", icon: MessageCircle },
 ];

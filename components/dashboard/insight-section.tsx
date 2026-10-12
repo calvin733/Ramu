@@ -1,5 +1,6 @@
 "use client";
 import { useState, type CSSProperties } from "react";
+import Link from "next/link";
 import {
   ArrowUpRight,
   Lightbulb,
@@ -31,6 +32,7 @@ export function InsightSection({
       mode: string;
     } | null>(null),
     [loading, setLoading] = useState(false);
+  const preview = insights.slice(0, 3);
   async function explain() {
     setLoading(true);
     try {
@@ -47,28 +49,25 @@ export function InsightSection({
         <div>
           <div className="heading-with-icon">
             <Sparkles size={21} />
-            <h2>Insight RAMU</h2>
+            <h2>Yang Perlu Anda Tahu</h2>
             <span className="small-badge">Dari data Anda</span>
           </div>
-          <p>Temukan hal yang penting. Tentukan langkah berikutnya.</p>
+          <p>Hal penting dari data bisnis Anda.</p>
         </div>
-        <Button variant="ghost" onClick={explain} disabled={loading}>
-          {loading ? (
-            <LoaderCircle size={15} className="spin" />
-          ) : (
-            <Sparkles size={15} />
-          )}
-          {loading
-            ? "RAMU sedang menganalisis data..."
-            : "Jelaskan dengan RAMU"}
-          <ArrowUpRight size={15} />
+        <Button variant="ghost" asChild>
+          <Link href="/ask">
+            Tanya RAMU
+            <ArrowUpRight size={15} />
+          </Link>
         </Button>
       </div>
       <div
         className="insight-grid"
-        style={{ "--insight-count": insights.length } as CSSProperties}
+        style={
+          { "--insight-count": Math.max(1, preview.length) } as CSSProperties
+        }
       >
-        {insights.map((i) => {
+        {preview.map((i) => {
           const { label, icon: Icon } = categories[i.kind];
           return (
             <article className={`insight-card ${i.kind}`} key={i.id}>
@@ -78,29 +77,47 @@ export function InsightSection({
               </div>
               <h3>{i.title}</h3>
               <p>{i.body}</p>
-              <div className="insight-action">{i.action}</div>
+              <details className="insight-next-step">
+                <summary>Langkah yang dapat dipertimbangkan</summary>
+                <div className="insight-action">{i.action}</div>
+              </details>
             </article>
           );
         })}
       </div>
-      {explanation && (
-        <div className="ai-explanation" aria-live="polite">
-          <div>
-            <Sparkles size={19} />
-            <strong>Penjelasan RAMU</strong>
-            <span className="small-badge">
-              {explanation.mode === "gemini" ? "Dibantu AI" : "Analisis dasar"}
-            </span>
-          </div>
-          <p>{explanation.text}</p>
-          {explanation.mode === "basic" && (
-            <small>
-              RAMU menggunakan analisis dasar karena layanan AI sedang tidak
-              tersedia.
-            </small>
+      <details className="insight-explanation-disclosure">
+        <summary>Penjelasan tambahan</summary>
+        <Button variant="ghost" onClick={explain} disabled={loading}>
+          {loading ? (
+            <LoaderCircle size={15} className="spin" />
+          ) : (
+            <Sparkles size={15} />
           )}
-        </div>
-      )}
+          {loading
+            ? "RAMU sedang menganalisis data..."
+            : "Jelaskan dengan RAMU"}
+        </Button>
+        {explanation && (
+          <div className="ai-explanation" aria-live="polite">
+            <div>
+              <Sparkles size={19} />
+              <strong>Penjelasan RAMU</strong>
+              <span className="small-badge">
+                {explanation.mode === "gemini"
+                  ? "Dibantu AI"
+                  : "Analisis dasar"}
+              </span>
+            </div>
+            <p>{explanation.text}</p>
+            {explanation.mode === "basic" && (
+              <small>
+                RAMU menggunakan analisis dasar karena layanan AI sedang tidak
+                tersedia.
+              </small>
+            )}
+          </div>
+        )}
+      </details>
       <div className="insight-assurance">
         <ShieldCheck size={13} /> Angka dihitung dari data bisnis Anda. RAMU
         membantu menjelaskannya.

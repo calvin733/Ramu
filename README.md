@@ -4,6 +4,15 @@
 
 RAMU is a focused Next.js MVP with a Bahasa Indonesia interface: Dashboard, Data Bisnis, Target Bisnis, and Tanya RAMU. It reuses deterministic analytics for financial values and treats Gemini as optional assistance. No authentication, database, payments, background notifications, or external business integrations.
 
+## Page responsibilities
+
+- **Data Bisnis:** connect a source, then inspect the active filename, processed status, period, load date, and available capabilities. The uploader is shown again only through **Ganti Data**. **Lihat Mapping** reveals the confirmed column interpretation; invalid replacement files preserve active data. Demo data stays on this page until **Lihat Dashboard** is selected.
+- **Dashboard:** four KPIs, revenue trend, at most three existing deterministic insights, at most three compact active goals, and the top three products. Detailed product analysis and additional explanations use disclosures. **Kelola Data**, **Lihat Semua Target**, and **Tanya RAMU** lead to dedicated pages.
+- **Target Bisnis:** create, edit, enable/disable, and delete goals; inspect existing calculated progress, remaining amount, days, required pace, and goal coaching. Disabled goals remain manageable in a separate section. Goals can be created before business data is loaded.
+- **Tanya RAMU:** a compact source context and a full-width conversation. Suggested questions include goals only when active goals exist. Existing AI/basic mode badges, verified metric context, and deterministic fallback remain intact.
+
+The provider retains only confirmed mapping labels and the source load timestamp for presentation across navigation. This session-only summary contains no uploaded rows, changes no calculation, and adds no database or localStorage format. Capability availability describes the existing Dashboard analysis window; each goal continues to validate its own calendar period independently.
+
 ## Setup
 
 Use Node.js 22.13+ (tested with Node.js 24.19) and npm:
@@ -34,18 +43,18 @@ Sheet names are flexible, including Penjualan, Sales, Transaksi April, Orders, D
 
 Aliases match without case, spaces, or punctuation differences. Examples:
 
-| RAMU reads | Example source column names |
-| --- | --- |
-| Date | date, Tanggal, Tgl, Transaction Date, Tanggal Transaksi, Order Date, Created At |
-| Order number | order_id, Invoice, No Invoice, Order Number, Nomor Transaksi |
-| Product | product_name, Produk, Nama Barang, Item |
-| Units | quantity, Qty, Jumlah, Units, Jumlah Barang |
-| Unit price | unit_price, Harga, Harga Satuan, Price, Harga Jual |
-| Revenue | revenue, Omzet, Pendapatan, Sales Amount, Total Penjualan |
-| Discount | discount, Diskon, Potongan |
-| Channel | channel, Kanal, Platform, Marketplace |
-| Product cost per unit | cogs, HPP, Harga Pokok, Biaya Produk |
-| Expense category/amount | Kategori Biaya / Nominal, Category / Amount |
+| RAMU reads              | Example source column names                                                     |
+| ----------------------- | ------------------------------------------------------------------------------- |
+| Date                    | date, Tanggal, Tgl, Transaction Date, Tanggal Transaksi, Order Date, Created At |
+| Order number            | order_id, Invoice, No Invoice, Order Number, Nomor Transaksi                    |
+| Product                 | product_name, Produk, Nama Barang, Item                                         |
+| Units                   | quantity, Qty, Jumlah, Units, Jumlah Barang                                     |
+| Unit price              | unit_price, Harga, Harga Satuan, Price, Harga Jual                              |
+| Revenue                 | revenue, Omzet, Pendapatan, Sales Amount, Total Penjualan                       |
+| Discount                | discount, Diskon, Potongan                                                      |
+| Channel                 | channel, Kanal, Platform, Marketplace                                           |
+| Product cost per unit   | cogs, HPP, Harga Pokok, Biaya Produk                                            |
+| Expense category/amount | Kategori Biaya / Nominal, Category / Amount                                     |
 
 For example, both files below are useful:
 
@@ -139,6 +148,8 @@ The revenue chart covers the entire dataset with daily/weekly/monthly aggregatio
 - `app/api/ai`: optional server-side Gemini endpoints.
 - `components/business-provider.tsx`: session data, business analytics, persistent goals, and goal progress.
 - `components/mapping-review.tsx`: classification and column review.
+- `components/data`: onboarding/upload, active source status, capabilities, and confirmed mapping summary.
+- `components/dashboard`: KPI summary, revenue chart, concise insights, compact goals, and product preview with expandable detail.
 - `components/goals`: reusable goal cards and dashboard summary.
 - `lib/mapping`: aliases, local file inspection, safe metadata, suggestion validation, local normalization.
 - `lib/goals`: validated models, local storage adapter, period arithmetic, deterministic calculations and answers.
@@ -159,7 +170,7 @@ npm run build
 
 If system Chromium is unavailable, install Playwright's browser with `npx playwright install chromium` and omit `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`. Browser tests must run without a Gemini key for predictable provider-independent results. The test runner starts a development server on port 3000.
 
-Tests cover the existing analytics/parser/provider behavior, multilingual and manual mapping, incomplete data, schema privacy, rejected AI proposals and outages, daily/monthly/yearly goals, reference dates, expenses/cost availability, target parsing, status/pace, storage corruption/persistence, chat integration, template imports, and laptop/mobile layouts.
+Tests cover the existing analytics/parser/provider behavior, multilingual and manual mapping, incomplete data, schema privacy, rejected AI proposals and outages, daily/monthly/yearly goals, reference dates, expenses/cost availability, target parsing, status/pace, storage corruption/persistence, chat integration, template imports, and laptop/mobile layouts. UX acceptance flows also cover processed source status, deliberate replacement, mapping inspection after navigation, partial capabilities, compact preview limits, goal enable/disable, contextual chat suggestions, and the full Data → Dashboard → Target Bisnis → Tanya RAMU journey without an AI key.
 
 Production locally:
 

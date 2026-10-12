@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { buildVerifiedContext } from "@/lib/insights";
 import { requestExplanation } from "@/lib/ai/client";
 import { formatDate, formatPercentage } from "@/lib/utils";
+import { GoalPaceMessage, GoalProgressBar } from "./goal-progress";
 import {
   formatGoalValue,
   goalInsight,
@@ -18,10 +19,12 @@ export function GoalCard({
   progress: p,
   onEdit,
   onDelete,
+  onToggle,
 }: {
   progress: GoalProgress;
   onEdit?: (g: BusinessGoal) => void;
   onDelete?: (g: BusinessGoal) => void;
+  onToggle?: (g: BusinessGoal) => void;
 }) {
   const { metrics } = useBusiness();
   const [explanation, setExplanation] = useState(""),
@@ -52,20 +55,7 @@ export function GoalCard({
             <strong>{formatGoalValue(p.goal.metric, p.actual!)}</strong>
             <span> / {formatGoalValue(p.goal.metric, p.target)}</span>
           </div>
-          <div
-            className="goal-progress"
-            role="progressbar"
-            aria-label={`Kemajuan target ${metricLabels[p.goal.metric]}`}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={Math.max(0, Math.min(100, p.progressPercentage!))}
-          >
-            <span
-              style={{
-                width: `${Math.max(0, Math.min(100, p.progressPercentage!))}%`,
-              }}
-            />
-          </div>
+          <GoalProgressBar progress={p} />
           <p>
             <strong>{formatPercentage(p.progressPercentage!)} tercapai</strong>{" "}
             · Sisa {formatGoalValue(p.goal.metric, p.remaining!)}
@@ -74,13 +64,7 @@ export function GoalCard({
             {p.daysRemaining} hari tersisa ·{" "}
             {formatPercentage(p.expectedProgressToDate)} periode berjalan
           </p>
-          <p className="goal-reminder">
-            {p.paceStatus === "completed"
-              ? "Target sudah tercapai. Pertahankan kualitas bisnis Anda."
-              : p.requiredRemainingPace === null
-                ? "Periode sudah selesai. Tidak ada hari tersisa untuk mengejar target ini."
-                : `Perlu rata-rata ${formatGoalValue(p.goal.metric, p.requiredRemainingPace)} per hari untuk mencapai target.`}
-          </p>
+          <GoalPaceMessage progress={p} />
           {p.supportingProducts[0] && (
             <p>
               {p.supportingProducts[0].name} menyumbang{" "}
@@ -90,14 +74,14 @@ export function GoalCard({
           )}
         </>
       )}
-      <p className="supporting">
-        Progress dihitung berdasarkan data terakhir:{" "}
-        {p.latestDataDate ? formatDate(p.latestDataDate) : "belum tersedia"}.
-        Tanggal acuan: {formatDate(p.referenceDate)}.
-      </p>
-      <details>
+      <details className="goal-coaching">
         <summary>Insight target</summary>
         <p>{goalInsight(p)}</p>
+        <p className="supporting">
+          Progress dihitung berdasarkan data terakhir:{" "}
+          {p.latestDataDate ? formatDate(p.latestDataDate) : "belum tersedia"}.
+          Tanggal acuan: {formatDate(p.referenceDate)}.
+        </p>
       </details>
       <div className="form-actions">
         {onEdit && (
@@ -108,6 +92,11 @@ export function GoalCard({
         {onDelete && (
           <Button variant="ghost" onClick={() => onDelete(p.goal)}>
             Hapus Target
+          </Button>
+        )}
+        {onToggle && (
+          <Button variant="ghost" onClick={() => onToggle(p.goal)}>
+            Nonaktifkan Target
           </Button>
         )}
         {metrics && onEdit && (

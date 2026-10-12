@@ -10,13 +10,11 @@ const upload = async (
   content: string,
 ) => {
   await page.goto("/data");
-  await page
-    .getByTestId("file-input")
-    .setInputFiles({
-      name,
-      mimeType: "text/csv",
-      buffer: Buffer.from(content),
-    });
+  await page.getByTestId("file-input").setInputFiles({
+    name,
+    mimeType: "text/csv",
+    buffer: Buffer.from(content),
+  });
 };
 test("Indonesian aliases and arbitrary Excel sheets are reviewed and analyzed", async ({
   page,
@@ -37,14 +35,12 @@ test("Indonesian aliases and arbitrary Excel sheets are reviewed and analyzed", 
     "Transaksi April",
   );
   await page.goto("/data");
-  await page
-    .getByTestId("file-input")
-    .setInputFiles({
-      name: "penjualan.xlsx",
-      mimeType:
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      buffer: XLSX.write(book, { type: "buffer", bookType: "xlsx" }),
-    });
+  await page.getByTestId("file-input").setInputFiles({
+    name: "penjualan.xlsx",
+    mimeType:
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: XLSX.write(book, { type: "buffer", bookType: "xlsx" }),
+  });
   await expect(
     page.getByLabel("Dibaca sebagai Tanggal (Transaksi April)"),
   ).toHaveValue("date");
@@ -159,9 +155,9 @@ test("monthly goals persist, calculate progress, appear on dashboard and answer 
     .getByRole("link", { name: "Dashboard" })
     .click();
   await page.getByRole("button", { name: "Gunakan Data Demo" }).click();
-  await expect(page.locator(".dashboard-goals .goal-card")).toContainText(
-    formatRupiah(p.actual!),
-  );
+  await expect(
+    page.locator(".dashboard-goals .goal-preview-card"),
+  ).toContainText(formatRupiah(p.actual!));
   expect(errors).toEqual([]);
   expect(analyzeBusiness(createDemoData())!.revenue).toBe(p.actual);
 });
@@ -174,7 +170,7 @@ test("goals validate input, warn about duplicates, support editing/deletion and 
   );
   await page.reload();
   await expect(
-    page.getByRole("heading", { name: "Mulai dengan satu tujuan" }),
+    page.getByRole("heading", { name: "Belum ada target bisnis." }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Tambah Target" }).click();
   await page.getByLabel("Nilai Target").fill("0");
@@ -210,7 +206,7 @@ test("readable UI and upgrade routes fit mobile and laptop layouts", async ({
     await page.setViewportSize({ width, height: 1000 });
     for (const label of [
       "Dashboard",
-      "Data",
+      "Data Bisnis",
       "Target Bisnis",
       "Tanya RAMU",
     ] as const) {
@@ -219,10 +215,10 @@ test("readable UI and upgrade routes fit mobile and laptop layouts", async ({
         .getByRole("link", { name: label, exact: true })
         .click();
       await page.waitForURL(
-        `**/${{ Dashboard: "dashboard", Data: "data", "Target Bisnis": "goals", "Tanya RAMU": "ask" }[label]}`,
+        `**/${{ Dashboard: "dashboard", "Data Bisnis": "data", "Target Bisnis": "goals", "Tanya RAMU": "ask" }[label]}`,
       );
       await expect(page.locator(".page-heading h1")).toContainText(
-        label === "Data" ? "Data Bisnis" : label,
+        label === "Data Bisnis" ? "Data Bisnis" : label,
       );
       await expect(page.locator(".page-heading h1")).toBeVisible();
       expect(

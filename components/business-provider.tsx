@@ -15,6 +15,7 @@ import type {
 import { analyzeBusiness } from "@/lib/analytics";
 import { createDemoData } from "@/lib/demo";
 import { generateInsights } from "@/lib/insights";
+import type { MappingSummaryData } from "@/components/data/mapping-summary";
 
 import {
   calculateGoal,
@@ -29,6 +30,8 @@ import {
 } from "@/lib/goals/store";
 
 interface BusinessState {
+  mappingSummary: MappingSummaryData | null;
+  setMappingSummary: (summary: MappingSummaryData | null) => void;
   goals: BusinessGoal[];
   goalProgress: GoalProgress[];
   setGoals: (goals: BusinessGoal[]) => void;
@@ -41,6 +44,8 @@ interface BusinessState {
 const BusinessContext = createContext<BusinessState | null>(null);
 export function BusinessProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<UploadedData | null>(null);
+  const [mappingSummary, setMappingSummary] =
+    useState<MappingSummaryData | null>(null);
   const goals = useSyncExternalStore(subscribeGoals, readGoals, serverGoals);
   const goalProgress = useMemo(
     () => goals.filter((g) => g.enabled).map((g) => calculateGoal(g, data)),
@@ -54,6 +59,11 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
   return (
     <BusinessContext.Provider
       value={{
+        mappingSummary:
+          mappingSummary?.loadedAt === data?.source.loadedAt
+            ? mappingSummary
+            : null,
+        setMappingSummary,
         goals,
         goalProgress,
         setGoals: writeGoals,

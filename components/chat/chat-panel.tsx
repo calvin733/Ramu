@@ -4,7 +4,6 @@ import {
   ArrowUp,
   ArrowUpRight,
   ChartNoAxesCombined,
-  Check,
   LoaderCircle,
   MessageCircle,
   Sparkles,
@@ -14,24 +13,32 @@ import { useBusiness } from "@/components/business-provider";
 import { buildVerifiedContext } from "@/lib/insights";
 import { requestExplanation } from "@/lib/ai/client";
 import { RamuMark } from "@/components/layout/app-shell";
-import { cn, formatDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
-const questions = [
-  "Bagaimana performa bisnis saya?",
-  "Berapa lagi target pendapatan bulan ini?",
-  "Produk apa yang paling laris?",
-  "Produk mana yang paling menguntungkan?",
-  "Apakah penjualan saya meningkat?",
-  "Produk apa yang perlu diperhatikan?",
-];
-export function ChatPanel({
-  metrics,
-  name,
-}: {
-  metrics: BusinessMetrics;
-  name: string;
-}) {
+export function ChatPanel({ metrics }: { metrics: BusinessMetrics }) {
   const { goalProgress } = useBusiness();
+  const questions = [
+    "Bagaimana performa bisnis saya?",
+    ...(goalProgress.length
+      ? [
+          goalProgress.some(
+            (p) => p.goal.metric === "revenue" && p.goal.period === "monthly",
+          )
+            ? "Berapa lagi target pendapatan bulan ini?"
+            : "Bagaimana progress target saya?",
+        ]
+      : []),
+    ...(metrics.capabilities.products
+      ? [
+          "Produk apa yang paling laris?",
+          "Produk mana yang paling menguntungkan?",
+        ]
+      : []),
+    "Apakah penjualan saya meningkat?",
+    ...(metrics.capabilities.products
+      ? ["Produk apa yang perlu diperhatikan?"]
+      : []),
+  ];
   const [messages, setMessages] = useState<ChatMessage[]>([]),
     [question, setQuestion] = useState(""),
     [loading, setLoading] = useState(false);
@@ -126,7 +133,7 @@ export function ChatPanel({
                 Anda.
               </p>
               <div className="question-grid">
-                {questions.slice(0, 4).map((q, i) => (
+                {questions.map((q, i) => (
                   <button
                     key={q}
                     disabled={loading}
@@ -193,7 +200,7 @@ export function ChatPanel({
             placeholder="Apa yang ingin Anda ketahui tentang bisnis Anda?"
             value={question}
             maxLength={500}
-            rows={1}
+            rows={2}
             disabled={loading}
             onChange={(e) => setQuestion(e.target.value)}
             onKeyDown={(e) => {
@@ -227,48 +234,6 @@ export function ChatPanel({
           <span>{question.length}/500</span>
         </div>
       </section>
-      <aside className="chat-context">
-        <section className="panel">
-          <span className="eyebrow">KONTEKS PERCAKAPAN</span>
-          <h3>
-            Bisnis Anda,
-            <br />
-            lebih dipahami.
-          </h3>
-          <div className="context-source">
-            <span>
-              <Check size={14} />
-            </span>
-            <div>
-              <strong>Data bisnis terhubung</strong>
-              <small>{name}</small>
-            </div>
-          </div>
-          <div className="context-date">
-            <span>Periode analisis</span>
-            <strong>
-              {formatDate(metrics.period.start)}
-              <br />– {formatDate(metrics.period.end)}
-            </strong>
-          </div>
-          <p>
-            RAMU membaca ringkasan metrik yang sudah dihitung. File mentah Anda
-            tidak dikirim ke AI.
-          </p>
-        </section>
-        <section className="chat-tip">
-          <Sparkles size={19} />
-          <h4>Mulai dengan rasa ingin tahu.</h4>
-          <p>
-            Pertanyaan yang spesifik membantu RAMU memberikan jawaban yang lebih
-            berguna.
-          </p>
-          <button disabled={loading} onClick={() => void send(questions[4])}>
-            {questions[4]}
-            <ArrowUpRight size={15} />
-          </button>
-        </section>
-      </aside>
     </div>
   );
 }
