@@ -1,4 +1,5 @@
 import { fields, type Field, type SheetType } from "@/lib/mapping";
+import type { Ref } from "react";
 
 // Presentation metadata only. No uploaded rows or new data/storage model.
 export interface MappingSummaryData {
@@ -20,13 +21,17 @@ const sheetLabels = {
 export function MappingSummary({
   summary,
   isDemo,
+  headingRef,
 }: {
   summary: MappingSummaryData | null;
   isDemo: boolean;
+  headingRef?: Ref<HTMLHeadingElement>;
 }) {
   return (
     <section className="panel mapping-summary" aria-label="Mapping data aktif">
-      <h2>Cara RAMU membaca data</h2>
+      <h2 ref={headingRef} tabIndex={-1} className="content-navigation-target">
+        Cara RAMU membaca data
+      </h2>
       <p className="supporting">
         Ringkasan pilihan kolom yang telah dikonfirmasi.
       </p>

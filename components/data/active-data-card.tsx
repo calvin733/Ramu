@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import type { BusinessMetrics, UploadedData } from "@/lib/types";
 import { formatDate, formatNumber, normalizeName } from "@/lib/utils";
 import { downloadWorkbook } from "@/lib/templates";
+import { useContentNavigation } from "@/components/hooks/use-content-navigation";
 
 export function ActiveDataCard({
   data,
@@ -20,15 +21,15 @@ export function ActiveDataCard({
   metrics: BusinessMetrics;
   replacing: boolean;
   viewingMapping: boolean;
-  onReplace: () => void;
+  onReplace: (trigger: HTMLButtonElement) => void;
   onViewMapping: () => void;
   onDelete: () => void;
 }) {
   const heading = useRef<HTMLHeadingElement>(null);
+  const navigateTo = useContentNavigation();
   useEffect(() => {
-    heading.current?.focus({ preventScroll: true });
-    heading.current?.scrollIntoView({ block: "start" });
-  }, [data.source.loadedAt]);
+    navigateTo(heading);
+  }, [data.source.loadedAt, navigateTo]);
   const productCount = new Set(
     data.transactions
       .filter((t) => t.productName)
@@ -44,7 +45,7 @@ export function ActiveDataCard({
     <section className="panel active-data" aria-label="Data Bisnis Aktif">
       <div className="panel-heading">
         <div>
-          <h2 ref={heading} tabIndex={-1}>
+          <h2 ref={heading} tabIndex={-1} className="content-navigation-target">
             Data Bisnis Aktif
           </h2>
           <p className="processed-status" role="status">
@@ -86,7 +87,7 @@ export function ActiveDataCard({
           variant="secondary"
           aria-expanded={replacing}
           aria-controls="replace-data"
-          onClick={onReplace}
+          onClick={(event) => onReplace(event.currentTarget)}
         >
           Ganti Data
         </Button>

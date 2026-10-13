@@ -1,11 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ShieldCheck } from "lucide-react";
 import { useBusiness } from "@/components/business-provider";
 import { ActiveDataCard } from "@/components/data/active-data-card";
 import { DataCapabilities } from "@/components/data/data-capabilities";
 import { MappingSummary } from "@/components/data/mapping-summary";
 import { UploadDataSection } from "@/components/data/upload-data-section";
+import { useContentNavigation } from "@/components/hooks/use-content-navigation";
 
 export default function DataPage() {
   const {
@@ -18,6 +19,29 @@ export default function DataPage() {
   } = useBusiness();
   const [replacing, setReplacing] = useState(false);
   const [viewingMapping, setViewingMapping] = useState(false);
+  const replaceHeading = useRef<HTMLHeadingElement>(null);
+  const mappingHeading = useRef<HTMLHeadingElement>(null);
+  const replaceOpener = useRef<HTMLButtonElement | null>(null);
+  const navigateTo = useContentNavigation();
+  function toggleReplacement(trigger: HTMLButtonElement) {
+    if (replacing) {
+      setReplacing(false);
+      return;
+    }
+    replaceOpener.current = trigger;
+    setViewingMapping(false);
+    setReplacing(true);
+    navigateTo(replaceHeading);
+  }
+  function toggleMapping() {
+    if (viewingMapping) {
+      setViewingMapping(false);
+      return;
+    }
+    setReplacing(false);
+    setViewingMapping(true);
+    navigateTo(mappingHeading);
+  }
   function complete() {
     setReplacing(false);
     setViewingMapping(false);
@@ -48,8 +72,8 @@ export default function DataPage() {
             metrics={metrics}
             replacing={replacing}
             viewingMapping={viewingMapping}
-            onReplace={() => setReplacing((value) => !value)}
-            onViewMapping={() => setViewingMapping((value) => !value)}
+            onReplace={toggleReplacement}
+            onViewMapping={toggleMapping}
             onDelete={() => {
               if (
                 window.confirm(
@@ -68,6 +92,7 @@ export default function DataPage() {
               <MappingSummary
                 summary={mappingSummary}
                 isDemo={data.source.kind === "demo"}
+                headingRef={mappingHeading}
               />
             )}
           </div>
@@ -77,7 +102,11 @@ export default function DataPage() {
         {(!data || replacing) && (
           <UploadDataSection
             replacing={Boolean(data)}
-            onCancel={() => setReplacing(false)}
+            headingRef={replaceHeading}
+            onCancel={() => {
+              setReplacing(false);
+              navigateTo(replaceOpener, "center");
+            }}
             onDemo={() => {
               loadDemo();
               setMappingSummary(null);

@@ -1,12 +1,13 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Plus, Target } from "lucide-react";
 import { useBusiness } from "@/components/business-provider";
 import { Button } from "@/components/ui/button";
 import { GlassButton } from "@/components/glass/glass-button";
 import { GoalCard } from "@/components/goals/goal-card";
 import { GoalForm } from "@/components/goals/goal-form";
+import { useContentNavigation } from "@/components/hooks/use-content-navigation";
 import {
   formatGoalValue,
   metricLabels,
@@ -19,13 +20,34 @@ export default function GoalsPage() {
   const [editing, setEditing] = useState<BusinessGoal | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState("");
-  function add() {
+  const formHeading = useRef<HTMLHeadingElement>(null);
+  const pageHeading = useRef<HTMLHeadingElement>(null);
+  const opener = useRef<HTMLButtonElement | null>(null);
+  const goalHeadings = useRef(new Map<string, HTMLHeadingElement>());
+  const navigateTo = useContentNavigation();
+  function add(trigger: HTMLButtonElement) {
+    opener.current = trigger;
     setEditing(null);
     setShowForm(true);
+    navigateTo(formHeading);
   }
-  function edit(goal: BusinessGoal) {
+  function edit(goal: BusinessGoal, trigger: HTMLButtonElement) {
+    opener.current = trigger;
     setEditing(goal);
     setShowForm(true);
+    navigateTo(formHeading);
+  }
+  function cancel() {
+    setShowForm(false);
+    navigateTo(
+      () =>
+        opener.current?.isConnected ? opener.current : pageHeading.current,
+      "center",
+    );
+  }
+  function registerHeading(id: string, heading: HTMLHeadingElement | null) {
+    if (heading) goalHeadings.current.set(id, heading);
+    else goalHeadings.current.delete(id);
   }
   function remove(goal: BusinessGoal) {
     if (
@@ -64,10 +86,20 @@ export default function GoalsPage() {
       <div className="page-heading">
         <div>
           <span className="eyebrow">LANGKAH MENUJU TUJUAN</span>
-          <h1>Target Bisnis</h1>
+          <h1
+            ref={pageHeading}
+            tabIndex={-1}
+            className="content-navigation-target"
+          >
+            Target Bisnis
+          </h1>
           <p>Tetapkan tujuan dan pantau kemajuan bisnis Anda.</p>
         </div>
-        <GlassButton onClick={add}>
+        <GlassButton
+          onClick={(event) => add(event.currentTarget)}
+          aria-expanded={showForm && !editing}
+          aria-controls="goal-form"
+        >
           <Plus size={18} />
           Tambah Target
         </GlassButton>
@@ -89,7 +121,8 @@ export default function GoalsPage() {
         <GoalForm
           key={editing?.id ?? "new"}
           initial={editing}
-          onCancel={() => setShowForm(false)}
+          headingRef={formHeading}
+          onCancel={cancel}
           onSave={(goal) => {
             if (
               goals.some(
@@ -109,6 +142,9 @@ export default function GoalsPage() {
             );
             setShowForm(false);
             setError("");
+            navigateTo(
+              () => goalHeadings.current.get(goal.id) ?? pageHeading.current,
+            );
           }}
         />
       )}
@@ -120,7 +156,13 @@ export default function GoalsPage() {
             Tambahkan target agar RAMU dapat membantu memantau kemajuan bisnis
             Anda.
           </p>
-          <Button onClick={add}>Buat Target Pertama</Button>
+          <Button
+            onClick={(event) => add(event.currentTarget)}
+            aria-expanded={showForm && !editing}
+            aria-controls="goal-form"
+          >
+            Buat Target Pertama
+          </Button>
         </section>
       )}
       {goalProgress.length > 0 && (
@@ -130,6 +172,8 @@ export default function GoalsPage() {
               <GoalCard
                 key={`${p.goal.id}:${p.target}:${p.actual}:${p.referenceDate}`}
                 progress={p}
+                headingRef={(heading) => registerHeading(p.goal.id, heading)}
+                editing={showForm && editing?.id === p.goal.id}
                 onEdit={edit}
                 onDelete={remove}
                 onToggle={toggle}
@@ -150,7 +194,11 @@ export default function GoalsPage() {
               .filter((g) => !g.enabled)
               .map((goal) => (
                 <article className="panel paused-goal-card" key={goal.id}>
-                  <h3>
+                  <h3
+                    ref={(heading) => registerHeading(goal.id, heading)}
+                    tabIndex={-1}
+                    className="content-navigation-target"
+                  >
                     {metricLabels[goal.metric]} {periodLabels[goal.period]}
                   </h3>
                   <p>Target: {formatGoalValue(goal.metric, goal.target)}</p>
@@ -159,7 +207,12 @@ export default function GoalsPage() {
                     <Button variant="secondary" onClick={() => toggle(goal)}>
                       Aktifkan Target
                     </Button>
-                    <Button variant="ghost" onClick={() => edit(goal)}>
+                    <Button
+                      variant="ghost"
+                      onClick={(event) => edit(goal, event.currentTarget)}
+                      aria-expanded={showForm && editing?.id === goal.id}
+                      aria-controls="goal-form"
+                    >
                       Edit Target
                     </Button>
                     <Button variant="ghost" onClick={() => remove(goal)}>

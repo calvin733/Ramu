@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, type Ref } from "react";
 import { useBusiness } from "@/components/business-provider";
 import { Button } from "@/components/ui/button";
 import { buildVerifiedContext } from "@/lib/insights";
@@ -21,11 +21,15 @@ export function GoalCard({
   onEdit,
   onDelete,
   onToggle,
+  headingRef,
+  editing = false,
 }: {
   progress: GoalProgress;
-  onEdit?: (g: BusinessGoal) => void;
+  onEdit?: (g: BusinessGoal, trigger: HTMLButtonElement) => void;
   onDelete?: (g: BusinessGoal) => void;
   onToggle?: (g: BusinessGoal) => void;
+  headingRef?: Ref<HTMLHeadingElement>;
+  editing?: boolean;
 }) {
   const { metrics } = useBusiness();
   const [explanation, setExplanation] = useState(""),
@@ -33,7 +37,11 @@ export function GoalCard({
   return (
     <article className="panel goal-card">
       <div className="goal-card-heading">
-        <h3>
+        <h3
+          ref={headingRef}
+          tabIndex={-1}
+          className="content-navigation-target"
+        >
           {metricLabels[p.goal.metric]} {periodLabels[p.goal.period]}
         </h3>
         {p.paceStatus && (
@@ -89,7 +97,12 @@ export function GoalCard({
       </details>
       <div className="form-actions">
         {onEdit && (
-          <Button variant="secondary" onClick={() => onEdit(p.goal)}>
+          <Button
+            variant="secondary"
+            onClick={(event) => onEdit(p.goal, event.currentTarget)}
+            aria-expanded={editing}
+            aria-controls="goal-form"
+          >
             Edit Target
           </Button>
         )}

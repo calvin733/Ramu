@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useRef, useState, type Ref } from "react";
 import {
   ArrowRight,
   Download,
@@ -30,11 +30,13 @@ export function UploadDataSection({
   onProcessed,
   onDemo,
   onCancel,
+  headingRef,
 }: {
   replacing: boolean;
   onProcessed: (data: UploadedData, mapping: MappingSummaryData) => void;
   onDemo: () => void;
   onCancel: () => void;
+  headingRef?: Ref<HTMLHeadingElement>;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const processing = useRef(false);
@@ -70,7 +72,12 @@ export function UploadDataSection({
     >
       <div className="section-heading">
         <div>
-          <h2 id="connect-data-title">
+          <h2
+            id="connect-data-title"
+            ref={headingRef}
+            tabIndex={-1}
+            className="content-navigation-target"
+          >
             {replacing ? "Ganti Data Bisnis" : "Hubungkan Data Bisnis"}
           </h2>
           <p>RAMU dapat membantu mengenali format kolom Anda.</p>

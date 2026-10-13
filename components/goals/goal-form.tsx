@@ -1,10 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useState, type Ref } from "react";
 import { Button } from "@/components/ui/button";
 import {
   goalSchema,
   parseGoalTarget,
   periodLabels,
+  metricLabels,
   type BusinessGoal,
 } from "@/lib/goals";
 
@@ -12,10 +13,12 @@ export function GoalForm({
   initial,
   onSave,
   onCancel,
+  headingRef,
 }: {
   initial: BusinessGoal | null;
   onSave: (g: BusinessGoal) => void;
   onCancel: () => void;
+  headingRef?: Ref<HTMLHeadingElement>;
 }) {
   const [kind, setKind] = useState(
     initial?.metric === "orders" || initial?.metric === "units"
@@ -33,6 +36,8 @@ export function GoalForm({
   return (
     <form
       className="panel goal-form"
+      id="goal-form"
+      aria-labelledby="goal-form-title"
       onSubmit={(e) => {
         e.preventDefault();
         setError("");
@@ -55,7 +60,19 @@ export function GoalForm({
         }
       }}
     >
-      <h2>{initial ? "Edit Target" : "Tambah Target"}</h2>
+      <h2
+        id="goal-form-title"
+        ref={headingRef}
+        tabIndex={-1}
+        className="content-navigation-target"
+      >
+        {initial ? "Edit Target Bisnis" : "Tambah Target Bisnis"}
+      </h2>
+      {initial && (
+        <p className="supporting">
+          {metricLabels[initial.metric]} · {periodLabels[initial.period]}
+        </p>
+      )}
       <label>
         Jenis Target
         <select

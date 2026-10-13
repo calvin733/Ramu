@@ -50,6 +50,15 @@ body {
   outline: 3px solid var(--ramu-green);
   outline-offset: 4px;
 }
+.content-navigation-target {
+  scroll-margin-top: 80px;
+}
+@media (max-width: 640px) {
+  .content-navigation-target {
+    /* The mobile navigation is taller than the desktop workspace header. */
+    scroll-margin-top: 180px;
+  }
+}
 .glass-surface,
 .panel {
   background: var(--ramu-glass);
