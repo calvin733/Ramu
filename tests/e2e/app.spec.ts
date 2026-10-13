@@ -33,9 +33,9 @@ test("demo dashboard, charts, product rankings, insights and fallback chat", asy
   ).toBeVisible();
   await expect(page.locator(".insight-card").nth(1)).toBeVisible();
   expect(await page.locator(".insight-card").count()).toBeLessThanOrEqual(3);
-  await expect(page.locator(".product-preview-list li")).toHaveCount(3);
+  await expect(page.locator(".executive-product-table tbody tr")).toHaveCount(5);
   await expect(page.locator(".product-table")).toHaveCount(0);
-  await page.getByText("Lihat Analisis Produk", { exact: true }).click();
+  await page.getByText("Lihat analisis lengkap", { exact: true }).click();
   await expect(page.locator(".product-table tbody tr")).toHaveCount(5);
   await page.getByRole("button", { name: "Lihat semua" }).click();
   await expect(page.locator(".product-table tbody tr")).toHaveCount(6);
@@ -64,13 +64,13 @@ test("demo dashboard, charts, product rankings, insights and fallback chat", asy
     .fill("Siapa pelanggan terbaik?");
   await page.getByRole("button", { name: "Kirim pertanyaan" }).click();
   await expect(page.locator(".chat-message.assistant").last()).toContainText(
-    "belum cukup",
+    "belum memiliki data pelanggan",
   );
   await page
     .getByRole("navigation")
     .getByRole("link", { name: "Dashboard" })
     .click();
-  await expect(page.locator(".kpi-card")).toHaveCount(4);
+  await expect(page.locator(".kpi-card")).toHaveCount(5);
   expect(errors).toEqual([]);
 });
 
@@ -117,9 +117,9 @@ test("CSV upload, missing COGS and friendly invalid upload preserve existing dat
   ).toBeVisible();
   await expect(page.getByText("Rp75.000", { exact: true })).toBeVisible();
   await expect(page.locator(".kpi-card").nth(1)).toContainText(
-    "Data belum tersedia",
+    "Belum tersedia",
   );
-  await page.getByText("Lihat Analisis Produk", { exact: true }).click();
+  await page.getByText("Lihat analisis lengkap", { exact: true }).click();
   await expect(page.locator(".product-table tbody tr").first()).toContainText(
     "-",
   );
@@ -172,7 +172,7 @@ test("Excel upload imports case-insensitive sheets and computes exact COGS profi
   );
   await page.getByRole("link", { name: "Lihat Dashboard" }).click();
   await expect(page.getByText("Rp90.000", { exact: true })).toBeVisible();
-  await page.getByText("Lihat Analisis Produk", { exact: true }).click();
+  await page.getByText("Lihat analisis lengkap", { exact: true }).click();
   await expect(page.locator(".product-table")).toContainText("60%");
   await page
     .getByRole("navigation")
@@ -221,7 +221,7 @@ test("template downloads produce usable files and data resets on full reload", a
 test("responsive mobile routes stay within the viewport", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole("button", { name: "Gunakan Data Demo" }).click();
-  await expect(page.getByRole("heading", { name: "Dashboard." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth,
@@ -258,7 +258,7 @@ test("demo KPI values stay inside their cards on narrow screens", async ({
 }) => {
   await page.setViewportSize({ width: 320, height: 844 });
   await page.getByRole("button", { name: "Gunakan Data Demo" }).click();
-  await expect(page.locator(".kpi-card")).toHaveCount(4);
+  await expect(page.locator(".kpi-card")).toHaveCount(5);
 
   const cards = await page.locator(".kpi-card").evaluateAll((elements) =>
     elements.map((card) => {

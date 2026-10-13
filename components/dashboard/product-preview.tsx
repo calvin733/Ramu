@@ -1,43 +1,59 @@
 "use client";
 import { useState } from "react";
 import { ProductTable } from "./product-table";
-import type { ProductMetrics } from "@/lib/types";
-import { formatPercentage, formatRupiah } from "@/lib/utils";
-
-export function ProductPreview({ products }: { products: ProductMetrics[] }) {
+import type { BusinessMetrics } from "@/lib/types";
+import { formatNumber, formatPercentage, formatRupiah } from "@/lib/utils";
+export function ProductPreview({ metrics }: { metrics: BusinessMetrics }) {
   const [expanded, setExpanded] = useState(false);
+  const { products } = metrics;
   return (
     <section
-      className="panel product-preview"
+      className="panel product-preview executive-products"
       aria-label="Ringkasan produk teratas"
     >
-      <div className="panel-heading">
-        <div>
-          <h2>Produk Teratas</h2>
-          <p>Tiga kontributor pendapatan terbesar pada periode ringkasan.</p>
-        </div>
+      <div className="executive-heading">
+        <h2>Performa Produk</h2>
+        <p>Lima kontributor pendapatan terbesar</p>
       </div>
-      <ul className="product-preview-list">
-        {products.slice(0, 3).map((product, i) => (
-          <li key={product.name}>
-            <span className="product-rank" aria-hidden="true">
-              {i + 1}
-            </span>
-            <strong>{product.name}</strong>
-            <div>
-              <strong>{formatRupiah(product.revenue)}</strong>
-              <span>
-                {formatPercentage(product.contribution)} dari pendapatan
-              </span>
-            </div>
-          </li>
-        ))}
-      </ul>
+      <table className="executive-product-table">
+        <thead>
+          <tr>
+            <th>Produk</th>
+            <th>Pendapatan</th>
+            <th>Porsi</th>
+            {metrics.capabilities.units && (
+              <th className="product-extra">Unit</th>
+            )}
+            {products.some((p) => p.margin !== null) && (
+              <th className="product-extra">Margin</th>
+            )}
+          </tr>
+        </thead>
+        <tbody>
+          {products.slice(0, 5).map((p) => (
+            <tr key={p.name}>
+              <th scope="row">{p.name}</th>
+              <td>{formatRupiah(p.revenue)}</td>
+              <td>
+                {metrics.revenue > 0 ? formatPercentage(p.contribution) : "—"}
+              </td>
+              {metrics.capabilities.units && (
+                <td className="product-extra">{formatNumber(p.units)}</td>
+              )}
+              {products.some((x) => x.margin !== null) && (
+                <td className="product-extra">
+                  {p.margin === null ? "—" : formatPercentage(p.margin)}
+                </td>
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
       <details
         className="product-detail-disclosure"
         onToggle={(e) => setExpanded(e.currentTarget.open)}
       >
-        <summary>Lihat Analisis Produk</summary>
+        <summary>Lihat analisis lengkap</summary>
         {expanded && <ProductTable products={products} />}
       </details>
     </section>

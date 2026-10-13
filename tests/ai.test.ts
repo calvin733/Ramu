@@ -95,3 +95,79 @@ describe("optional server-side Gemini", () => {
   it("requires a question for chat", async () =>
     expect((await handleAi(request({ context }), "chat")).status).toBe(400));
 });
+
+describe("structured Gemini chat grounding", () => {
+  it("explains channels even when the legacy intent is unknown, using only aliased facts", async () => {
+    vi.stubEnv("GEMINI_API_KEY", "test-only-placeholder");
+    const channelContext = buildVerifiedContext(
+      analyzeBusiness(createDemoData())!,
+      "Channel penjualan terbaik apa?",
+    );
+    expect(channelContext.intent).toBe("unknown");
+    mocks.generate.mockResolvedValue({
+      text: "ENTITAS_1_RAMU adalah channel teratas.",
+    });
+    const response = await handleAi(
+      request({
+        context: channelContext,
+        question:
+          "Channel penjualan terbaik apa? Email saya private@example.org",
+      }),
+      "chat",
+    );
+    expect((await response.json()).mode).toBe("gemini");
+    const payload = mocks.generate.mock.calls[0][0].contents;
+    expect(payload).toContain("verifiedFacts");
+    expect(payload).not.toContain("private@example.org");
+    expect(payload).not.toContain(channelContext.channels[0].name);
+    expect(payload).not.toContain("fallbackText");
+  });
+  it("returns specific deterministic limitations without invoking Gemini", async () => {
+    vi.stubEnv("GEMINI_API_KEY", "test-only-placeholder");
+    const limited = buildVerifiedContext(
+      analyzeBusiness(createDemoData())!,
+      "Siapa pelanggan terbaik?",
+    );
+    const response = await handleAi(
+      request({ context: limited, question: "Siapa pelanggan terbaik?" }),
+      "chat",
+    );
+    expect(await response.json()).toEqual({
+      text: limited.fallback,
+      mode: "basic",
+    });
+    expect(mocks.generate).not.toHaveBeenCalled();
+  });
+  it("rejects raw records and arbitrary labels within new fact and channel structures", async () => {
+    for (const bad of [
+      {
+        ...context,
+        channels: [
+          { name: "Shopee", revenue: 1, contribution: 1, transactions: [] },
+        ],
+      },
+      {
+        ...context,
+        answer: {
+          ...context.answer,
+          facts: [{ field: "private customer", value: 1, format: "number" }],
+        },
+      },
+      {
+        ...context,
+        answer: {
+          ...context.answer,
+          query: { ...context.answer.query, operation: "execute" },
+        },
+      },
+    ])
+      expect(
+        (
+          await handleAi(
+            request({ context: bad, question: "Performa?" }),
+            "chat",
+          )
+        ).status,
+      ).toBe(400);
+  });
+});

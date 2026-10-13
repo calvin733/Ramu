@@ -81,12 +81,12 @@ test("Data → executive overview → goal → compact preview → business conv
   await expect(page.locator(".capability-statuses .available")).toHaveCount(6);
   await expect(page.locator(".upload-dropzone")).toHaveCount(0);
   await page.getByRole("link", { name: "Lihat Dashboard" }).click();
-  await expect(page.locator(".kpi-card")).toHaveCount(4);
+  await expect(page.locator(".kpi-card")).toHaveCount(5);
   await expect(
     page.getByRole("heading", { name: "Yang Perlu Anda Tahu" }),
   ).toBeVisible();
   expect(await page.locator(".insight-card").count()).toBeLessThanOrEqual(3);
-  await expect(page.locator(".product-preview-list li")).toHaveCount(3);
+  await expect(page.locator(".executive-product-table tbody tr")).toHaveCount(5);
   await expect(page.locator(".product-table")).toHaveCount(0);
   await page.getByRole("link", { name: "Buat Target", exact: true }).click();
   await expect(
@@ -129,7 +129,7 @@ test("Data → executive overview → goal → compact preview → business conv
     0,
   );
   await expect(
-    page.getByRole("link", { name: "Lihat Semua Target" }),
+    page.getByRole("link", { name: "Lihat Target" }),
   ).toBeVisible();
   await page
     .locator(".insights-section")
@@ -244,7 +244,7 @@ test("partial data, confirmed mapping, replacement, and deletion stay clear", as
   await page.getByRole("link", { name: "Lihat Dashboard" }).click();
   await expect(page.locator(".kpi-card").first()).toContainText("Rp90.000");
   await expect(page.locator(".kpi-card").nth(2)).toContainText(
-    "Data belum tersedia",
+    "Belum tersedia",
   );
   await navigate(page, "Data Bisnis");
   page.once("dialog", (dialog) => dialog.accept());
@@ -292,11 +292,11 @@ test("goals show required pace, retain enable state on edit, and limit dashboard
   await page.getByRole("button", { name: "Simpan Target" }).click();
   await expect(page.locator(".goal-card")).toHaveCount(4);
   await navigate(page, "Dashboard");
-  await expect(page.locator(".goal-preview-card")).toHaveCount(3);
+  await expect(page.locator(".goal-preview-card")).toHaveCount(2);
   await expect(
     page.locator(".dashboard-goals .goal-card, .dashboard-goals button"),
   ).toHaveCount(0);
-  await page.getByRole("link", { name: "Lihat Semua Target" }).click();
+  await page.getByRole("link", { name: "Lihat Target" }).click();
   await expect(page.locator(".goal-card")).toHaveCount(4);
 });
 

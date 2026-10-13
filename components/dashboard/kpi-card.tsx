@@ -12,6 +12,7 @@ export function KpiCard({
   icon: Icon,
   days,
   note,
+  unavailable = false,
 }: {
   label: string;
   value: string;
@@ -19,6 +20,7 @@ export function KpiCard({
   icon: LucideIcon;
   days: number;
   note?: string;
+  unavailable?: boolean;
 }) {
   return (
     <section className="panel kpi-card">
@@ -28,7 +30,7 @@ export function KpiCard({
           <Icon size={19} strokeWidth={1.65} />
         </span>
       </div>
-      <strong className={cn("kpi-value", note && "kpi-value-missing")}>
+      <strong className={cn("kpi-value", unavailable && "kpi-value-missing")}>
         {value}
       </strong>
       <div className="kpi-bottom">

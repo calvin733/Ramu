@@ -1,67 +1,76 @@
-import { CircleDollarSign, Receipt, ShoppingBag, Wallet } from "lucide-react";
+import {
+  CircleDollarSign,
+  Receipt,
+  ShoppingBag,
+  Wallet,
+  Package,
+} from "lucide-react";
 import { KpiCard } from "./kpi-card";
 import type { BusinessMetrics } from "@/lib/types";
-import { formatPercentage, formatRupiah } from "@/lib/utils";
-
-export function DashboardSummary({ metrics }: { metrics: BusinessMetrics }) {
+import { formatRupiah, formatNumber } from "@/lib/utils";
+export function DashboardSummary({ metrics: m }: { metrics: BusinessMetrics }) {
   return (
-    <section aria-label="Ringkasan KPI bisnis">
+    <section className="executive-summary" aria-label="Ringkasan KPI bisnis">
       <div className="period-row">
-        <span>Ringkasan {metrics.period.days} hari terakhir dalam data</span>
-        <span>
-          Perubahan dibanding periode sebelumnya dengan durasi yang sama.
-        </span>
+        <span>Ringkasan {m.period.days} hari terakhir dalam data</span>
+        <span>Perubahan vs periode dengan durasi sama</span>
       </div>
       <div className="kpi-grid">
         <KpiCard
           label="Pendapatan"
-          value={formatRupiah(metrics.revenue)}
-          growth={metrics.revenueGrowth}
-          days={metrics.period.days}
+          value={formatRupiah(m.revenue)}
+          growth={m.revenueGrowth}
+          days={m.period.days}
           icon={Wallet}
         />
         <KpiCard
           label="Laba Kotor"
+          unavailable={m.grossProfit === null}
           value={
-            metrics.grossProfit === null
-              ? "Data belum tersedia"
-              : formatRupiah(metrics.grossProfit)
+            m.grossProfit === null
+              ? "Belum tersedia"
+              : formatRupiah(m.grossProfit)
           }
-          growth={metrics.profitGrowth}
-          days={metrics.period.days}
+          growth={m.profitGrowth}
+          days={m.period.days}
           icon={CircleDollarSign}
           note={
-            metrics.grossProfit === null
-              ? `HPP tersedia: ${formatPercentage(metrics.cogsCoverage)} unit`
-              : undefined
+            m.grossProfit === null ? "Lengkapi jumlah unit dan HPP" : undefined
           }
         />
         <KpiCard
           label="Pesanan"
+          unavailable={!m.capabilities.orders}
           value={
-            metrics.capabilities.orders
-              ? metrics.orders.toLocaleString("id-ID")
-              : "Data belum tersedia"
+            m.capabilities.orders ? formatNumber(m.orders) : "Belum tersedia"
           }
-          growth={metrics.orderGrowth}
-          days={metrics.period.days}
+          growth={m.orderGrowth}
+          days={m.period.days}
           icon={ShoppingBag}
-          note={
-            !metrics.capabilities.orders ? "Tambahkan nomor pesanan" : undefined
-          }
+          note={!m.capabilities.orders ? "Tambahkan nomor pesanan" : undefined}
         />
         <KpiCard
-          label="Rata-rata Nilai Pesanan"
-          value={
-            metrics.capabilities.orders
-              ? formatRupiah(metrics.aov)
-              : "Data belum tersedia"
-          }
-          growth={metrics.aovGrowth}
-          days={metrics.period.days}
+          label="Rata-rata Pesanan"
+          unavailable={!m.capabilities.orders}
+          value={m.capabilities.orders ? formatRupiah(m.aov) : "Belum tersedia"}
+          growth={m.aovGrowth}
+          days={m.period.days}
           icon={Receipt}
+          note={!m.capabilities.orders ? "Tambahkan nomor pesanan" : undefined}
+        />
+        <KpiCard
+          label="Unit Terjual"
+          unavailable={!m.capabilities.units}
+          value={
+            m.capabilities.units ? formatNumber(m.units) : "Belum tersedia"
+          }
+          growth={null}
+          days={m.period.days}
+          icon={Package}
           note={
-            !metrics.capabilities.orders ? "Tambahkan nomor pesanan" : undefined
+            !m.capabilities.units
+              ? "Tambahkan jumlah unit"
+              : `Dalam ${m.period.days} hari ringkasan`
           }
         />
       </div>

@@ -11,7 +11,7 @@ import {
   Sparkles,
   Target,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { useBusiness } from "@/components/business-provider";
 import { cn } from "@/lib/utils";
 import { GlassSurface } from "@/components/glass/glass-surface";
@@ -36,6 +36,19 @@ export function RamuMark({ small = false }: { small?: boolean }) {
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname(),
     { data } = useBusiness();
+  const topbar = useRef<HTMLElement>(null);
+  useEffect(() => {
+    let last = false;
+    const update = () => {
+      const scrolled = window.scrollY > 12;
+      if (last !== scrolled)
+        topbar.current?.classList.toggle("scrolled", scrolled);
+      last = scrolled;
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
+  }, []);
   return (
     <div className="app-shell">
       <a href="#konten" className="skip-link">
@@ -96,13 +109,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </GlassSurface>
       <div className="main-shell">
-        <header className="topbar">
+        <header className="topbar" ref={topbar}>
           <div className="breadcrumb">
             <span>Ruang bisnis</span>
-            <span className="breadcrumb-slash">/</span>
-            <strong>
-              {links.find((l) => l.href === pathname)?.label ?? "Dashboard"}
-            </strong>
           </div>
           <div className="workspace-status">
             <span className={cn("status-dot", data && "loaded")} />

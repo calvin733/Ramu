@@ -18,7 +18,7 @@ import { GlassSurface } from "@/components/glass/glass-surface";
 
 const categories = {
   opportunity: { label: "Peluang", icon: Lightbulb },
-  warning: { label: "Perlu Diperhatikan", icon: TriangleAlert },
+  warning: { label: "Perhatian", icon: TriangleAlert },
   performance: { label: "Performa", icon: TrendingUp },
 };
 export function InsightSection({
@@ -51,9 +51,7 @@ export function InsightSection({
           <div className="heading-with-icon">
             <Sparkles size={21} />
             <h2>Yang Perlu Anda Tahu</h2>
-            <span className="small-badge">Dari data Anda</span>
           </div>
-          <p>Hal penting dari data bisnis Anda.</p>
         </div>
         <Button variant="ghost" asChild>
           <Link href="/ask">
@@ -71,10 +69,10 @@ export function InsightSection({
                 <Icon size={15} />
                 <span>{label}</span>
               </div>
-              <h3>{i.title}</h3>
+
               <p>{i.body}</p>
               <details className="insight-next-step">
-                <summary>Langkah yang dapat dipertimbangkan</summary>
+                <summary>Saran tindakan</summary>
                 <div className="insight-action">{i.action}</div>
               </details>
             </article>

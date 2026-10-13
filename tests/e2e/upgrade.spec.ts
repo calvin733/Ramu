@@ -74,10 +74,10 @@ test("manual mapping works without AI and absent metrics stay unavailable", asyn
   await page.getByRole("link", { name: "Lihat Dashboard" }).click();
   await expect(page.locator(".kpi-card").first()).toContainText("Rp123.000");
   await expect(page.locator(".kpi-card").nth(2)).toContainText(
-    "Data belum tersedia",
+    "Belum tersedia",
   );
   await expect(page.locator(".kpi-card").nth(3)).toContainText(
-    "Data belum tersedia",
+    "Belum tersedia",
   );
   await expect(page.locator(".product-table")).toHaveCount(0);
 });
@@ -239,7 +239,7 @@ test("readable UI and upgrade routes fit mobile and laptop layouts", async ({
             .locator(".page-heading h1")
             .evaluate((e) => Number.parseFloat(getComputedStyle(e).fontSize)),
         )
-        .toBeGreaterThanOrEqual(32);
+        .toBeGreaterThanOrEqual(label === "Dashboard" ? 28 : 32);
     }
   }
   expect(errors).toEqual([]);

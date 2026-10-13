@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useReducedMotion } from "@/components/hooks/use-reduced-motion";
+import type { TrendUnit } from "@/lib/queries/aggregates";
 import {
   Area,
   AreaChart,
@@ -10,15 +11,18 @@ import {
   YAxis,
 } from "recharts";
 import type { BusinessMetrics } from "@/lib/types";
-import { dateMs, DAY_MS, formatDate, formatRupiah } from "@/lib/utils";
+import { formatDate, formatRupiah } from "@/lib/utils";
 
-export function RevenueChart({ metrics }: { metrics: BusinessMetrics }) {
-  const span =
-    (dateMs(metrics.dataPeriod.end) - dateMs(metrics.dataPeriod.start)) /
-    DAY_MS;
-  const [unit, setUnit] = useState<"day" | "week" | "month">(
-    span >= 120 ? "month" : span > 45 ? "week" : "day",
-  );
+export function RevenueChart({
+  metrics,
+  unit,
+  onUnitChange,
+}: {
+  metrics: BusinessMetrics;
+  unit: TrendUnit;
+  onUnitChange: (unit: TrendUnit) => void;
+}) {
+  const reducedMotion = useReducedMotion();
   const points = metrics.trends[unit];
   const shortMoney = (value: number) =>
     value >= 1e6
@@ -39,7 +43,7 @@ export function RevenueChart({ metrics }: { metrics: BusinessMetrics }) {
         <select
           aria-label="Agregasi grafik"
           value={unit}
-          onChange={(e) => setUnit(e.target.value as typeof unit)}
+          onChange={(e) => onUnitChange(e.target.value as TrendUnit)}
         >
           <option value="day">Harian</option>
           <option value="week">Mingguan</option>
@@ -116,7 +120,10 @@ export function RevenueChart({ metrics }: { metrics: BusinessMetrics }) {
               strokeWidth={2.5}
               fill="url(#revenueFill)"
               activeDot={{ r: 5, strokeWidth: 3, stroke: "white" }}
-              isAnimationActive={false}
+              isAnimationActive={!reducedMotion}
+              animationDuration={400}
+              animationEasing="ease-out"
+              key={unit}
             />
           </AreaChart>
         </ResponsiveContainer>

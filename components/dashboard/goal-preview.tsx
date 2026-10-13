@@ -12,7 +12,7 @@ import { formatPercentage } from "@/lib/utils";
 
 export function GoalPreview({ progress: p }: { progress: GoalProgress }) {
   return (
-    <article className="panel goal-preview-card">
+    <article className="goal-preview-card">
       <h3>
         {metricLabels[p.goal.metric]} {periodLabels[p.goal.period]}
       </h3>

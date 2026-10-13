@@ -11,6 +11,7 @@ import {
 import type { BusinessMetrics, ChatMessage } from "@/lib/types";
 import { useBusiness } from "@/components/business-provider";
 import { buildVerifiedContext } from "@/lib/insights";
+import { suggestedQuestions, type BusinessQuery } from "@/lib/queries";
 import { requestExplanation } from "@/lib/ai/client";
 import { RamuMark } from "@/components/layout/app-shell";
 import { cn } from "@/lib/utils";
@@ -19,28 +20,8 @@ import { GlassPill } from "@/components/glass/glass-pill";
 
 export function ChatPanel({ metrics }: { metrics: BusinessMetrics }) {
   const { goalProgress } = useBusiness();
-  const questions = [
-    "Bagaimana performa bisnis saya?",
-    ...(goalProgress.length
-      ? [
-          goalProgress.some(
-            (p) => p.goal.metric === "revenue" && p.goal.period === "monthly",
-          )
-            ? "Berapa lagi target pendapatan bulan ini?"
-            : "Bagaimana progress target saya?",
-        ]
-      : []),
-    ...(metrics.capabilities.products
-      ? [
-          "Produk apa yang paling laris?",
-          "Produk mana yang paling menguntungkan?",
-        ]
-      : []),
-    "Apakah penjualan saya meningkat?",
-    ...(metrics.capabilities.products
-      ? ["Produk apa yang perlu diperhatikan?"]
-      : []),
-  ];
+  const questions = suggestedQuestions(metrics, goalProgress);
+  const previousQuery = useRef<BusinessQuery | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]),
     [question, setQuestion] = useState(""),
     [loading, setLoading] = useState(false);
@@ -74,11 +55,15 @@ export function ChatPanel({ metrics }: { metrics: BusinessMetrics }) {
       { id: crypto.randomUUID(), role: "user", content: text },
     ]);
     try {
-      const result = await requestExplanation(
-        "chat",
-        buildVerifiedContext(metrics, text, goalProgress),
+      const context = buildVerifiedContext(
+        metrics,
         text,
+        goalProgress,
+        previousQuery.current,
       );
+      if (context.answer.status === "answered")
+        previousQuery.current = context.answer.query;
+      const result = await requestExplanation("chat", context, text);
       if (mounted.current)
         setMessages((previous) => [
           ...previous,
@@ -187,8 +172,8 @@ export function ChatPanel({ metrics }: { metrics: BusinessMetrics }) {
         </div>
         {messages.some((m) => m.mode === "basic") && (
           <div className="chat-fallback-notice">
-            RAMU menggunakan analisis dasar karena layanan AI sedang tidak
-            tersedia.
+            Analisis dasar menggunakan hasil perhitungan RAMU. Jawaban tetap
+            tersedia tanpa bantuan AI.
           </div>
         )}
         <form
