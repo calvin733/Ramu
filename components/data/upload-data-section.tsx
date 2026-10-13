@@ -24,6 +24,7 @@ import { downloadCsvTemplate, downloadWorkbook } from "@/lib/templates";
 import { cn } from "@/lib/utils";
 import { GlassSurface } from "@/components/glass/glass-surface";
 import { GlassButton } from "@/components/glass/glass-button";
+import { registerImportedPrivacy } from "@/lib/chat/import-privacy";
 
 export function UploadDataSection({
   replacing,
@@ -214,6 +215,7 @@ export function UploadDataSection({
           onConfirm={(complete) => {
             try {
               const data = normalizeImport(document, complete);
+              registerImportedPrivacy(data, document);
               onProcessed(data, {
                 loadedAt: data.source.loadedAt,
                 sheets: document.sheets.map((sheet) => ({

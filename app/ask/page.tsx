@@ -5,7 +5,7 @@ import { EmptyState } from "@/components/empty-state";
 import { ChatPanel } from "@/components/chat/chat-panel";
 import { ChatContext } from "@/components/chat/chat-context";
 export default function AskPage() {
-  const { data, metrics } = useBusiness();
+  const { data, metrics, chatSession } = useBusiness();
   return (
     <div className="page ask-page">
       <div className="page-heading">
@@ -21,13 +21,17 @@ export default function AskPage() {
           Jawaban dari data Anda
         </span>
       </div>
-      {metrics && data ? (
+      {metrics && data && chatSession ? (
         <>
           <ChatContext data={data} metrics={metrics} />
-          <ChatPanel metrics={metrics} key={data.source.loadedAt} />
+          <ChatPanel
+            metrics={metrics}
+            session={chatSession}
+            key={chatSession.id}
+          />
           <p className="supporting chat-data-assurance">
-            RAMU membaca ringkasan angka bisnis Anda. File mentah tidak dikirim
-            ke AI.
+            File dan transaksi mentah tidak dikirim ke AI. RAMU hanya
+            menggunakan ringkasan bisnis dan pertanyaan yang telah disamarkan.
           </p>
         </>
       ) : (

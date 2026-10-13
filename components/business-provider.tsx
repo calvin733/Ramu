@@ -15,6 +15,7 @@ import type {
 import { analyzeBusiness } from "@/lib/analytics";
 import { createDemoData } from "@/lib/demo";
 import { generateInsights } from "@/lib/insights";
+import { createChatSession, type ChatSession } from "@/lib/chat/session";
 import type { MappingSummaryData } from "@/components/data/mapping-summary";
 
 import {
@@ -30,6 +31,7 @@ import {
 } from "@/lib/goals/store";
 
 interface BusinessState {
+  chatSession: ChatSession | null;
   mappingSummary: MappingSummaryData | null;
   setMappingSummary: (summary: MappingSummaryData | null) => void;
   goals: BusinessGoal[];
@@ -52,6 +54,10 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
     [goals, data],
   );
   const metrics = useMemo(() => (data ? analyzeBusiness(data) : null), [data]);
+  const chatSession = useMemo(
+    () => (data && metrics ? createChatSession(data, metrics) : null),
+    [data, metrics],
+  );
   const insights = useMemo(
     () => (metrics ? generateInsights(metrics) : []),
     [metrics],
@@ -59,6 +65,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
   return (
     <BusinessContext.Provider
       value={{
+        chatSession,
         mappingSummary:
           mappingSummary?.loadedAt === data?.source.loadedAt
             ? mappingSummary

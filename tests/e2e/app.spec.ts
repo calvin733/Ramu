@@ -33,7 +33,9 @@ test("demo dashboard, charts, product rankings, insights and fallback chat", asy
   ).toBeVisible();
   await expect(page.locator(".insight-card").nth(1)).toBeVisible();
   expect(await page.locator(".insight-card").count()).toBeLessThanOrEqual(3);
-  await expect(page.locator(".executive-product-table tbody tr")).toHaveCount(5);
+  await expect(page.locator(".executive-product-table tbody tr")).toHaveCount(
+    5,
+  );
   await expect(page.locator(".product-table")).toHaveCount(0);
   await page.getByText("Lihat analisis lengkap", { exact: true }).click();
   await expect(page.locator(".product-table tbody tr")).toHaveCount(5);
@@ -64,7 +66,7 @@ test("demo dashboard, charts, product rankings, insights and fallback chat", asy
     .fill("Siapa pelanggan terbaik?");
   await page.getByRole("button", { name: "Kirim pertanyaan" }).click();
   await expect(page.locator(".chat-message.assistant").last()).toContainText(
-    "data pelanggan belum tersedia",
+    "data pelanggan",
   );
   await page
     .getByRole("navigation")

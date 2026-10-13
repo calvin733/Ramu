@@ -2,7 +2,7 @@ import "server-only";
 
 export const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-3.5-flash-lite";
 
-type GeminiRoute = "chat" | "explain" | "goals" | "map-data";
+type GeminiRoute = "chat" | "explain" | "goals" | "map-data" | "plan";
 
 export function logGeminiRequest(route: GeminiRoute) {
   console.info("[RAMU Gemini]", {
@@ -37,9 +37,13 @@ export function logGeminiError(
       : undefined;
   const code =
     typeof codeValue === "string" &&
-    ["EAI_AGAIN", "ENOTFOUND", "ECONNRESET", "ECONNREFUSED", "ETIMEDOUT"].includes(
-      codeValue,
-    )
+    [
+      "EAI_AGAIN",
+      "ENOTFOUND",
+      "ECONNRESET",
+      "ECONNREFUSED",
+      "ETIMEDOUT",
+    ].includes(codeValue)
       ? codeValue
       : undefined;
   let message =

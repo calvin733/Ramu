@@ -1,5 +1,6 @@
 import { entityLabel } from "@/lib/copy/entity-label";
 import type { VerifiedBusinessAnswer } from "@/lib/queries/model";
+import { EntityRegistry } from "@/lib/chat/privacy";
 
 // Only closed query fields and numeric facts go to Gemini. Free-form questions,
 // source filenames, narrative text, and real business entity names stay out.
@@ -43,5 +44,66 @@ export function prepareChatFacts(
             )
           : token;
       }),
+  };
+}
+
+// Dashboard/goal explanation callers keep their existing summary contract, but
+// names and generated prose are no longer sent unfiltered to the provider.
+export function prepareExplanationContext(context: {
+  products: { name: string }[];
+  channels?: { name: string }[];
+  goals?: { supportingProducts: { name: string }[] }[];
+}) {
+  const products = [
+    ...context.products,
+    ...(context.goals ?? []).flatMap((g) => g.supportingProducts),
+  ];
+  const registry = new EntityRegistry(
+    {
+      transactions: [],
+      products: products.map((p) => ({ name: p.name })),
+      expenses: [],
+      source: { name: "", kind: "demo", loadedAt: "" },
+    },
+    { products, channels: context.channels ?? [] },
+  );
+  const privateProse = new Set([
+    "answer",
+    "fallback",
+    "fallbackText",
+    "title",
+    "body",
+    "action",
+    "missing",
+  ]);
+  const scrub = (
+    value: unknown,
+    key = "",
+    kind: "product" | "channel" = "product",
+  ): unknown => {
+    if (typeof value === "string") {
+      if (key === "name") return registry.alias(value, kind);
+      if (
+        key === "id" &&
+        !["growth", "top", "margin", "cost", "strong"].includes(value)
+      )
+        return "insight";
+      return value;
+    }
+    if (Array.isArray(value))
+      return value.map((v) =>
+        scrub(v, key, key === "channels" ? "channel" : "product"),
+      );
+    if (value && typeof value === "object")
+      return Object.fromEntries(
+        Object.entries(value)
+          .filter(([key]) => !privateProse.has(key))
+          .map(([key, v]) => [key, scrub(v, key, kind)]),
+      );
+    return value;
+  };
+  return {
+    payload: scrub(context),
+    restore: (text: string) => registry.restore(text),
   };
 }

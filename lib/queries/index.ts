@@ -16,6 +16,7 @@ import type {
   BusinessQuery,
   VerifiedBusinessAnswer,
 } from "./model";
+import { businessQuerySchema } from "./model";
 export { understandQuery } from "./understand";
 export type { BusinessQuery, VerifiedBusinessAnswer } from "./model";
 const labels: Record<BusinessFact["field"], string> = {
@@ -52,6 +53,27 @@ export function answerBusinessQuery(
   previous?: BusinessQuery | null,
 ): VerifiedBusinessAnswer {
   const query = understandQuery(question, m, previous);
+  const unsupported = unsupportedReason(question);
+  if (unsupported)
+    return {
+      query,
+      status: "unsupported",
+      facts: [],
+      limitations: [],
+      fallbackText: unsupported,
+    };
+  return retrieveBusinessQuery(query, m, goals, question);
+}
+
+// Structured planners select information; the existing retrieval and analytics
+// remain responsible for every authoritative number and availability decision.
+export function retrieveBusinessQuery(
+  input: BusinessQuery | null,
+  m: BusinessMetrics,
+  goals: GoalProgress[] = [],
+  question = "Target bisnis saya",
+): VerifiedBusinessAnswer {
+  const query = input ? businessQuerySchema.parse(input) : null;
   const limitations: VerifiedBusinessAnswer["limitations"] = [];
   const result = (
     text: string,
@@ -61,8 +83,6 @@ export function answerBusinessQuery(
     const answer = { query, status, facts, limitations, fallbackText: text };
     return { ...answer, fallbackText: businessAnswerCopy(answer, m) };
   };
-  const unsupported = unsupportedReason(question);
-  if (unsupported) return result(unsupported, [], "unsupported");
   if (!query)
     return result(
       "Apa yang ingin Anda lihat lebih dekat? Coba tanyakan penjualan, produk, channel, atau target bisnis Anda.",

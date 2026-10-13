@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   ArrowUp,
   ArrowUpRight,
@@ -8,25 +8,32 @@ import {
   MessageCircle,
   Sparkles,
 } from "lucide-react";
-import type { BusinessMetrics, ChatMessage } from "@/lib/types";
+import type { BusinessMetrics } from "@/lib/types";
 import { useBusiness } from "@/components/business-provider";
-import { buildVerifiedContext } from "@/lib/insights";
-import { suggestedQuestions, type BusinessQuery } from "@/lib/queries";
-import { requestExplanation } from "@/lib/ai/client";
+import { suggestedQuestions } from "@/lib/queries";
+import { requestChatTurn } from "@/lib/chat/client";
+import type { ChatSession } from "@/lib/chat/session";
 import { RamuMark } from "@/components/layout/app-shell";
 import { cn } from "@/lib/utils";
 import { LiquidGlass } from "@/components/glass/liquid-glass";
 import { GlassPill } from "@/components/glass/glass-pill";
 
-export function ChatPanel({ metrics }: { metrics: BusinessMetrics }) {
+export function ChatPanel({
+  metrics,
+  session,
+}: {
+  metrics: BusinessMetrics;
+  session: ChatSession;
+}) {
   const { goalProgress } = useBusiness();
   const questions = suggestedQuestions(metrics, goalProgress);
-  const previousQuery = useRef<BusinessQuery | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]),
-    [question, setQuestion] = useState(""),
-    [loading, setLoading] = useState(false);
+  const { messages, sending: loading } = useSyncExternalStore(
+    session.subscribe,
+    session.getSnapshot,
+    session.getServerSnapshot,
+  );
+  const [question, setQuestion] = useState("");
   const end = useRef<HTMLDivElement>(null),
-    busy = useRef(false),
     mounted = useRef(true),
     input = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
@@ -46,38 +53,49 @@ export function ChatPanel({ metrics }: { metrics: BusinessMetrics }) {
   }, [messages, loading]);
   async function send(value: string) {
     const text = value.trim();
-    if (!text || text.length > 500 || busy.current) return;
-    busy.current = true;
-    setLoading(true);
+    if (!text || text.length > 500 || session.getSnapshot().sending) return;
     setQuestion("");
-    setMessages((previous) => [
-      ...previous,
-      { id: crypto.randomUUID(), role: "user", content: text },
-    ]);
+    session.update({
+      sending: true,
+      messages: [
+        ...session.getSnapshot().messages,
+        { id: crypto.randomUUID(), role: "user", content: text },
+      ],
+    });
     try {
-      const context = buildVerifiedContext(
-        metrics,
+      const result = await requestChatTurn(
         text,
+        metrics,
         goalProgress,
-        previousQuery.current,
+        session,
       );
-      if (context.answer.status === "answered")
-        previousQuery.current = context.answer.query;
-      const result = await requestExplanation("chat", context, text);
-      if (mounted.current)
-        setMessages((previous) => [
-          ...previous,
+      session.update({
+        messages: [
+          ...session.getSnapshot().messages,
           {
             id: crypto.randomUUID(),
             role: "assistant",
             content: result.text,
             mode: result.mode,
           },
-        ]);
+        ],
+      });
+    } catch {
+      session.update({
+        messages: [
+          ...session.getSnapshot().messages,
+          {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content:
+              "Jawaban belum bisa disiapkan. Coba tanyakan penjualan, produk, channel, atau target bisnis Anda.",
+            mode: "basic",
+          },
+        ],
+      });
     } finally {
-      busy.current = false;
+      session.update({ sending: false });
       if (mounted.current) {
-        setLoading(false);
         input.current?.focus();
       }
     }
