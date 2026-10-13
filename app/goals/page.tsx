@@ -111,7 +111,7 @@ export default function GoalsPage() {
       )}
       {!data && (
         <div className="goal-data-note">
-          <p>Tambahkan data bisnis untuk melihat progress target.</p>
+          <p>Tambahkan data bisnis untuk melihat kemajuan target.</p>
           <Link href="/data" className="text-button">
             Tambahkan Data
           </Link>
@@ -186,8 +186,8 @@ export default function GoalsPage() {
         <section className="paused-goals" aria-label="Target nonaktif">
           <h2>Target Nonaktif</h2>
           <p className="supporting">
-            Aktifkan kembali untuk menampilkan progress dan menyertakannya dalam
-            insight RAMU.
+            Aktifkan kembali untuk menampilkan kemajuan dan menyertakannya dalam
+            saran RAMU.
           </p>
           <div className="goal-grid">
             {goals
@@ -233,8 +233,7 @@ export default function GoalsPage() {
       )}
       <p className="supporting">
         Target tersimpan di browser ini. Data transaksi hanya tersedia di sesi
-        ini. Progress mengikuti perhitungan RAMU dengan toleransi jalur ±5 poin
-        persentase.
+        ini. RAMU membantu memantau kemajuan sesuai periode setiap target.
       </p>
     </div>
   );

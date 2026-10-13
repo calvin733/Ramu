@@ -58,8 +58,8 @@ export function MappingSummary({
       ) : (
         <p>
           {isDemo
-            ? "Data demo sudah terstruktur sebagai penjualan, produk, dan pengeluaran. Tidak memerlukan mapping manual."
-            : "Ringkasan mapping tidak tersedia untuk sumber ini. Ganti data untuk meninjau dan mengonfirmasi kolom kembali."}
+            ? "RAMU sudah mengenali penjualan, produk, dan pengeluaran dalam data demo. Anda tidak perlu memilih kolom lagi."
+            : "Pilihan kolom untuk file ini belum tersimpan. Gunakan Ganti Data jika ingin memeriksa cara RAMU membaca kolomnya."}
         </p>
       )}
     </section>

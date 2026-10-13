@@ -39,7 +39,7 @@ test("demo dashboard, charts, product rankings, insights and fallback chat", asy
   await expect(page.locator(".product-table tbody tr")).toHaveCount(5);
   await page.getByRole("button", { name: "Lihat semua" }).click();
   await expect(page.locator(".product-table tbody tr")).toHaveCount(6);
-  await page.getByLabel("Agregasi grafik").selectOption("week");
+  await page.getByLabel("Tampilan waktu grafik").selectOption("week");
   await expect(
     page.getByRole("img", { name: /Pendapatan mingguan/ }),
   ).toBeVisible();
@@ -56,7 +56,7 @@ test("demo dashboard, charts, product rankings, insights and fallback chat", asy
     .getByRole("button", { name: "Produk apa yang paling laris?" })
     .click();
   await expect(page.locator(".chat-message.assistant")).toContainText(
-    "Produk paling laris adalah",
+    "paling laris",
   );
   await expect(page.locator(".chat-fallback-notice")).toBeVisible();
   await page
@@ -64,7 +64,7 @@ test("demo dashboard, charts, product rankings, insights and fallback chat", asy
     .fill("Siapa pelanggan terbaik?");
   await page.getByRole("button", { name: "Kirim pertanyaan" }).click();
   await expect(page.locator(".chat-message.assistant").last()).toContainText(
-    "belum memiliki data pelanggan",
+    "data pelanggan belum tersedia",
   );
   await page
     .getByRole("navigation")

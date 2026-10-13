@@ -1,3 +1,4 @@
+import { entityLabel } from "@/lib/copy/entity-label";
 import type { BusinessMetrics } from "@/lib/types";
 import { channelPerformance } from "@/lib/queries/aggregates";
 import { formatPercentage, formatRupiah } from "@/lib/utils";
@@ -14,7 +15,7 @@ export function ChannelPerformance({ metrics }: { metrics: BusinessMetrics }) {
         {channels.slice(0, 5).map((c, i) => (
           <li key={c.name}>
             <div>
-              <strong>{c.name}</strong>
+              <strong>{entityLabel(c.name, "channel")}</strong>
               <span>
                 {c.contribution === null
                   ? "—"
@@ -40,15 +41,15 @@ export function ChannelPerformance({ metrics }: { metrics: BusinessMetrics }) {
           <summary>{channels.length - 5} channel lainnya</summary>
           {channels.slice(5).map((c) => (
             <p key={c.name}>
-              {c.name} · {formatRupiah(c.revenue)} ·{" "}
+              {entityLabel(c.name, "channel")} · {formatRupiah(c.revenue)} ·{" "}
               {c.contribution === null ? "—" : formatPercentage(c.contribution)}
             </p>
           ))}
         </details>
       )}
       <p className="executive-footnote">
-        Porsi dari seluruh pendapatan channel tercatat, termasuk Tanpa kanal
-        jika ada.
+        Porsi dari seluruh penjualan, termasuk transaksi yang belum memiliki
+        informasi channel.
       </p>
     </section>
   );

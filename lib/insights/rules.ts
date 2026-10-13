@@ -1,5 +1,6 @@
+import { entityLabel } from "@/lib/copy/entity-label";
 import type { BusinessInsight, BusinessMetrics } from "@/lib/types";
-import { formatNumber, formatPercentage } from "@/lib/utils";
+import { formatPercentage } from "@/lib/utils";
 
 export function generateInsights(m: BusinessMetrics): BusinessInsight[] {
   const insights: BusinessInsight[] = [];
@@ -8,8 +9,8 @@ export function generateInsights(m: BusinessMetrics): BusinessInsight[] {
     insights.push({
       id: "growth",
       kind: up ? "opportunity" : "warning",
-      title: up ? "Penjualan bergerak naik" : "Penjualan perlu perhatian",
-      body: `Pendapatan ${up ? "tumbuh" : "turun"} ${formatPercentage(Math.abs(m.revenueGrowth))} dibanding ${m.period.days} hari sebelumnya.`,
+      title: up ? "Penjualan sedang naik" : "Penjualan sedang turun",
+      body: `Pendapatan ${up ? "naik" : "turun"} ${formatPercentage(Math.abs(m.revenueGrowth))} dibanding ${m.period.days} hari sebelumnya.`,
       action: up
         ? "Tinjau produk yang tumbuh untuk menentukan fokus promosi berikutnya."
         : "Tinjau perubahan penjualan per produk sebelum menambah biaya promosi.",
@@ -22,12 +23,12 @@ export function generateInsights(m: BusinessMetrics): BusinessInsight[] {
       kind: top.contribution > 40 ? "warning" : "performance",
       title:
         top.contribution > 40
-          ? "Penjualan terkonsentrasi"
+          ? "Bergantung pada produk utama"
           : "Andalan bisnis Anda",
-      body: `${top.name} menyumbang ${formatPercentage(top.contribution)} pendapatan, ${m.capabilities.units ? `dengan ${formatNumber(top.units)} unit terjual` : "jumlah unit belum tersedia"}.`,
+      body: `${entityLabel(top.name)} menyumbang ${formatPercentage(top.contribution)} penjualan.`,
       action:
         top.contribution > 40
-          ? "Jaga kualitas produk andalan dan uji promosi produk lain untuk mengurangi ketergantungan."
+          ? "Coba tawarkan produk lain bersama produk utama agar penjualan lebih seimbang."
           : "Pastikan produk andalan tetap tersedia saat permintaan meningkat.",
     });
   const withMargins = m.products.filter((p) => p.margin !== null);
@@ -39,19 +40,19 @@ export function generateInsights(m: BusinessMetrics): BusinessInsight[] {
     insights.push({
       id: "margin",
       kind: "warning",
-      title: "Margin yang perlu ditinjau",
-      body: `Margin kotor ${low.name} sebesar ${formatPercentage(low.margin!)}; rata-rata margin produk dengan biaya tersedia adalah ${formatPercentage(avg)}.`,
+      title: "Cek margin produk ini",
+      body: `Margin kotor ${entityLabel(low.name)} ${formatPercentage(low.margin!)}; rata-rata produk yang biayanya sudah lengkap ${formatPercentage(avg)}.`,
       action:
-        "Tinjau biaya bahan dan diskon produk ini sebelum menjalankan promosi.",
+        "Cek biaya bahan dan harga jual sebelum memberikan diskon tambahan.",
     });
   if (m.cogs === null)
     insights.push({
       id: "cost",
       kind: "warning",
       title: "Lengkapi biaya produk",
-      body: `COGS tersedia untuk ${formatPercentage(m.cogsCoverage)} unit terjual. Laba kotor total belum dapat dihitung.`,
+      body: `${m.capabilities.units ? "Biaya produk" : "Jumlah terjual"} belum lengkap, jadi laba kotor belum bisa dihitung dengan akurat.`,
       action:
-        "Tambahkan biaya per unit pada kolom cogs di sheet products untuk melihat profitabilitas.",
+        "Tambahkan biaya per unit dan jumlah terjual agar keuntungan bisa dihitung.",
     });
   const strong = withMargins.find(
     (p) => p.margin! >= 45 && p.contribution >= 15,
@@ -60,8 +61,8 @@ export function generateInsights(m: BusinessMetrics): BusinessInsight[] {
     insights.push({
       id: "strong",
       kind: "opportunity",
-      title: "Peluang dari produk bermargin kuat",
-      body: `${strong.name} memiliki margin ${formatPercentage(strong.margin!)} dan menyumbang ${formatPercentage(strong.contribution)} pendapatan.`,
+      title: "Peluang untuk mendorong keuntungan",
+      body: `${entityLabel(strong.name)} memiliki margin ${formatPercentage(strong.margin!)} dan menyumbang ${formatPercentage(strong.contribution)} penjualan.`,
       action:
         "Pertimbangkan menonjolkan produk ini pada katalog atau penawaran paket.",
     });

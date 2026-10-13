@@ -254,7 +254,7 @@ describe("verified aggregate retrieval", () => {
     };
     const a = answerBusinessQuery("Channel terbaik?", partial);
     expect(a.facts[1].value).toBe(25);
-    expect(a.fallbackText).toContain("Tanpa kanal");
+    expect(a.fallbackText).toContain("belum memiliki informasi channel");
   });
   it("keeps unknown, unsupported and missing data distinct", () => {
     expect(answer("Apa maksudnya?").status).toBe("clarification");
@@ -265,7 +265,7 @@ describe("verified aggregate retrieval", () => {
   });
   it.each([
     ["Siapa pelanggan terbaik?", "data pelanggan"],
-    ["Prediksi penjualan bulan depan?", "forecasting"],
+    ["Prediksi penjualan bulan depan?", "prediksi"],
     ["Stok Brownie berapa?", "persediaan"],
     ["Berapa pajak saya?", "pajak"],
   ])("explains specific unsupported feature: %s", (q, text) => {

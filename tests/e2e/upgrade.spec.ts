@@ -61,7 +61,7 @@ test("manual mapping works without AI and absent metrics stay unavailable", asyn
 }) => {
   await upload(page, "ambigu.csv", "Kapan,Angka\n2026-09-20,123000");
   await page.getByRole("button", { name: "Biarkan RAMU Membantu" }).click();
-  await expect(page.getByRole("status")).toContainText("Pengenalan dasar");
+  await expect(page.getByRole("status")).toContainText("memilih kolom sendiri");
   await page
     .getByLabel("Dibaca sebagai Kapan (Penjualan)")
     .selectOption("date");

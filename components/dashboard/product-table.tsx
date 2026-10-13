@@ -1,4 +1,5 @@
 "use client";
+import { entityLabel } from "@/lib/copy/entity-label";
 import { useState } from "react";
 import { ArrowDown, ArrowUpRight } from "lucide-react";
 import type { ProductMetrics } from "@/lib/types";
@@ -50,7 +51,7 @@ export function ProductTable({ products }: { products: ProductMetrics[] }) {
                         .join("")}
                     </span>
                     <div>
-                      <strong>{p.name}</strong>
+                      <strong>{entityLabel(p.name)}</strong>
                       <span>
                         {formatPercentage(p.contribution)} dari pendapatan
                       </span>
@@ -92,7 +93,8 @@ export function ProductTable({ products }: { products: ProductMetrics[] }) {
         </table>
       </div>
       <div className="table-footnote">
-        Margin dihitung dari biaya per unit (COGS), sebelum biaya operasional.
+        Margin kotor memperhitungkan biaya produk, belum termasuk biaya
+        operasional dan pajak.
       </div>
     </section>
   );

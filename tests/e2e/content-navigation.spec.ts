@@ -139,7 +139,7 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
         behavior,
       );
       await expect(page.locator("#active-mapping")).toContainText(
-        "Tidak memerlukan mapping manual",
+        "tidak perlu memilih kolom",
       );
       const requests = await page.evaluate(
         () => (window as unknown as NavigationWindow).ramuScrollRequests.length,

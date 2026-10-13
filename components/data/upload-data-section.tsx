@@ -286,8 +286,8 @@ export function UploadDataSection({
               bulat positif; diskon adalah nilai total per baris.
             </li>
             <li>
-              Tambahkan HPP per unit untuk laba kotor. Pengeluaran lengkap
-              diperlukan untuk laba bersih.
+              Tambahkan biaya produk per unit untuk melihat laba kotor.
+              Pengeluaran lengkap diperlukan untuk laba bersih.
             </li>
             <li>
               Nama sheet bebas. Periksa jenis data dan kolom sebelum konfirmasi.

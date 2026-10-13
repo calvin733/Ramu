@@ -163,7 +163,7 @@ for (const mode of [
       .getByRole("button", { name: "Bagaimana performa bisnis saya?" })
       .click();
     await expect(page.locator(".chat-message.assistant")).toContainText(
-      "Pendapatan",
+      "Penjualan",
     );
     await expect(page.locator(".message-mode")).toHaveText("Analisis dasar");
     await expect(page.locator(".liquid-canvas")).toHaveCount(0);

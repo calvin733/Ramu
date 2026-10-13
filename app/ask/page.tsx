@@ -26,8 +26,8 @@ export default function AskPage() {
           <ChatContext data={data} metrics={metrics} />
           <ChatPanel metrics={metrics} key={data.source.loadedAt} />
           <p className="supporting chat-data-assurance">
-            RAMU menggunakan ringkasan metrik bisnis yang telah dihitung. File
-            mentah tidak dikirim ke AI.
+            RAMU membaca ringkasan angka bisnis Anda. File mentah tidak dikirim
+            ke AI.
           </p>
         </>
       ) : (

@@ -1,3 +1,4 @@
+import { entityLabel } from "@/lib/copy/entity-label";
 import type { VerifiedBusinessAnswer } from "@/lib/queries/model";
 
 // Only closed query fields and numeric facts go to Gemini. Free-form questions,
@@ -33,9 +34,14 @@ export function prepareChatFacts(
       limitations: answer.limitations,
     },
     restore: (text: string) =>
-      text.replace(
-        /ENTITAS_\d+_RAMU/g,
-        (token) => [...aliases].find(([, v]) => v === token)?.[0] ?? token,
-      ),
+      text.replace(/ENTITAS_\d+_RAMU/g, (token) => {
+        const name = [...aliases].find(([, v]) => v === token)?.[0];
+        return name
+          ? entityLabel(
+              name,
+              answer.query?.topic === "channels" ? "channel" : "product",
+            )
+          : token;
+      }),
   };
 }

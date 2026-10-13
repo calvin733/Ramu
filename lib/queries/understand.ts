@@ -25,17 +25,17 @@ export function detectEntities(question: string, names: string[]) {
 export function unsupportedReason(question: string): string | null {
   const q = normalizeQuery(question);
   if (/pelanggan|customer|pembeli|customer lifetime|retensi|loyalitas/.test(q))
-    return "RAMU belum memiliki data pelanggan pada dataset ini, jadi pelanggan terbaik atau perilaku pelanggan belum dapat ditentukan.";
+    return "Saya belum bisa menilai pelanggan terbaik karena data pelanggan belum tersedia. Saat ini saya bisa membantu melihat produk atau channel yang paling banyak menyumbang penjualan.";
   if (
     /prediksi|forecast|ramal|besok|bulan depan|tahun depan|next month/.test(q)
   )
-    return "RAMU saat ini belum melakukan forecasting. Saya dapat membantu menjelaskan tren historis yang tersedia; target yang dipantau memakai periode acuan data saat ini.";
+    return "Saya belum bisa membuat prediksi penjualan ke depan. Saya bisa membantu melihat tren penjualan yang sudah terjadi sebagai bahan pertimbangan Anda.";
   if (/\bstok\b|inventory|persediaan/.test(q))
-    return "Data persediaan belum tersedia. Jumlah unit terjual bukan jumlah stok yang masih tersedia.";
+    return "Saya belum bisa melihat sisa stok karena data persediaan belum tersedia. Jumlah barang yang terjual belum cukup untuk mengetahui stok yang tersisa.";
   if (/pajak|\btax\b|ppn|pph/.test(q))
-    return "RAMU belum memiliki data atau perhitungan pajak. Laba kotor yang tersedia belum memperhitungkan pajak.";
+    return "Saya belum bisa menghitung pajak karena informasi pajak belum tersedia. Laba kotor yang ditampilkan belum dikurangi pajak.";
   if (/laba bersih|net profit/.test(q) && !/target|goal|tujuan/.test(q))
-    return "Ringkasan bisnis belum menyediakan laba bersih terverifikasi. Pantau target laba bersih di Target Bisnis jika HPP dan cakupan pengeluaran periode target lengkap.";
+    return "Laba bersih belum tersedia di ringkasan bisnis. Anda bisa memantaunya melalui Target Bisnis setelah biaya produk dan pengeluaran pada periode target dilengkapi.";
   return null;
 }
 

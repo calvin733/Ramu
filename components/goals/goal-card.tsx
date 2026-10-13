@@ -1,4 +1,5 @@
 "use client";
+import { entityLabel } from "@/lib/copy/entity-label";
 import { useState, type Ref } from "react";
 import { useBusiness } from "@/components/business-provider";
 import { Button } from "@/components/ui/button";
@@ -79,7 +80,7 @@ export function GoalCard({
           <GoalPaceMessage progress={p} />
           {p.supportingProducts[0] && (
             <p>
-              {p.supportingProducts[0].name} menyumbang{" "}
+              {entityLabel(p.supportingProducts[0].name)} menyumbang{" "}
               {formatPercentage(p.supportingProducts[0].contribution)}{" "}
               pendapatan periode target.
             </p>
@@ -87,12 +88,12 @@ export function GoalCard({
         </>
       )}
       <details className="goal-coaching">
-        <summary>Insight target</summary>
+        <summary>Saran untuk target</summary>
         <p>{goalInsight(p)}</p>
         <p className="supporting">
-          Progress dihitung berdasarkan data terakhir:{" "}
+          Data penjualan terakhir:{" "}
           {p.latestDataDate ? formatDate(p.latestDataDate) : "belum tersedia"}.
-          Tanggal acuan: {formatDate(p.referenceDate)}.
+          Dipantau hingga: {formatDate(p.referenceDate)}.
         </p>
       </details>
       <div className="form-actions">

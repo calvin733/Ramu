@@ -14,21 +14,21 @@ export function DataCapabilities({
     { name: "Pesanan", available: metrics.capabilities.orders },
     { name: "Produk", available: metrics.capabilities.products },
     { name: "Jumlah Terjual", available: metrics.capabilities.units },
-    { name: "HPP", available: metrics.cogs !== null },
+    { name: "Biaya produk", available: metrics.cogs !== null },
     { name: "Pengeluaran", available: metrics.capabilities.expenses },
   ];
   return (
     <section
       className="panel data-capabilities"
-      aria-label="Kemampuan data aktif"
+      aria-label="Informasi bisnis yang tersedia"
     >
       <div className="panel-heading">
         <div>
           <h2>Data yang berhasil dikenali</h2>
           <p>
             Untuk ringkasan {formatDate(metrics.period.start)} –{" "}
-            {formatDate(metrics.period.end)}. Ketersediaan pada target mengikuti
-            periode targetnya.
+            {formatDate(metrics.period.end)}. Kemajuan target dihitung sesuai
+            periode masing-masing target.
           </p>
         </div>
       </div>
@@ -54,8 +54,8 @@ export function DataCapabilities({
         )}
         {metrics.cogs === null && (
           <p>
-            HPP atau jumlah terjual belum lengkap, sehingga laba kotor belum
-            dapat dihitung.
+            Biaya produk atau jumlah terjual belum lengkap, jadi laba kotor
+            belum bisa dihitung dengan akurat.
           </p>
         )}
         {!metrics.capabilities.expenses && (
@@ -63,8 +63,8 @@ export function DataCapabilities({
             {data.expenses.length
               ? "Pengeluaran sudah terbaca, tetapi belum dikonfirmasi lengkap untuk periode analisis."
               : "Data pengeluaran belum tersedia."}{" "}
-            Laba bersih membutuhkan HPP dan pengeluaran lengkap untuk periode
-            target.
+            Lengkapi biaya produk dan pengeluaran untuk melihat laba bersih pada
+            periode target.
           </p>
         )}
         <p className="supporting">

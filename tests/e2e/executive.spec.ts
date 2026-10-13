@@ -53,7 +53,7 @@ test("executive overview fits the first desktop viewport and keeps header seamle
   await expect(page.locator(".period-highlights")).toContainText(
     "Bulan terbaik",
   );
-  await page.getByLabel("Agregasi grafik").selectOption("day");
+  await page.getByLabel("Tampilan waktu grafik").selectOption("day");
   await expect(page.locator(".period-highlights")).toContainText(
     "Hari terbaik",
   );
@@ -122,12 +122,13 @@ test("basic chat answers channels, follow-ups, product comparisons and specific 
   const comparison = await send("Bandingkan Fudgy Brownie dan Ladyfinger");
   await expect(comparison).toContainText("Brownie");
   await expect(comparison).toContainText("Ladyfinger");
-  await expect(comparison).toContainText("Margin");
+  await expect(comparison).toContainText("penjualan");
+  await expect(comparison).not.toContainText("Margin");
   await expect(await send("Siapa pelanggan terbaik?")).toContainText(
     "data pelanggan",
   );
   await expect(await send("Prediksi bulan depan?")).toContainText(
-    "forecasting",
+    "prediksi",
   );
   await expect(page.locator(".message-mode").last()).toHaveText(
     "Analisis dasar",

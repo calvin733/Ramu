@@ -90,7 +90,7 @@ export function ChatPanel({ metrics }: { metrics: BusinessMetrics }) {
             <RamuMark small />
             <span>
               <strong>RAMU</strong>
-              <small>Copilot bisnis Anda</small>
+              <small>Partner bisnis Anda</small>
             </span>
           </div>
           <span className="chat-status">
@@ -164,7 +164,7 @@ export function ChatPanel({ metrics }: { metrics: BusinessMetrics }) {
               <RamuMark small />
               <div className="message-content loading-message">
                 <LoaderCircle size={16} className="spin" />
-                RAMU sedang menganalisis data...
+                RAMU sedang menyiapkan jawaban...
               </div>
             </div>
           )}
@@ -172,8 +172,8 @@ export function ChatPanel({ metrics }: { metrics: BusinessMetrics }) {
         </div>
         {messages.some((m) => m.mode === "basic") && (
           <div className="chat-fallback-notice">
-            Analisis dasar menggunakan hasil perhitungan RAMU. Jawaban tetap
-            tersedia tanpa bantuan AI.
+            Angka bisnis Anda tetap dihitung oleh RAMU. Jawaban tetap tersedia
+            meski bantuan AI belum tersedia.
           </div>
         )}
         <form
@@ -221,8 +221,8 @@ export function ChatPanel({ metrics }: { metrics: BusinessMetrics }) {
         </form>
         <div className="chat-disclaimer">
           <span>
-            Jawaban berdasarkan data yang tersedia. Periksa kembali sebelum
-            mengambil keputusan.
+            RAMU membantu memahami angka bisnis Anda. Pertimbangkan saran sesuai
+            kondisi usaha sebelum mengambil keputusan.
           </span>
           <span>{question.length}/500</span>
         </div>

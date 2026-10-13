@@ -41,7 +41,7 @@ export function RevenueChart({
           <p>Perjalanan penjualan di seluruh periode data</p>
         </div>
         <select
-          aria-label="Agregasi grafik"
+          aria-label="Tampilan waktu grafik"
           value={unit}
           onChange={(e) => onUnitChange(e.target.value as TrendUnit)}
         >

@@ -52,6 +52,31 @@ describe("optional server-side Gemini", () => {
       "transactions",
     );
   });
+  it("guides Gemini toward concise business answers while retaining financial safety", async () => {
+    vi.stubEnv("GEMINI_API_KEY", "test-only-placeholder");
+    mocks.generate.mockResolvedValue({ text: "Penjualan Anda tumbuh." });
+    await handleAi(
+      request({ context, question: "Bagaimana performa bisnis saya?" }),
+      "chat",
+    );
+    const instruction =
+      mocks.generate.mock.calls[0][0].config.systemInstruction;
+    for (const phrase of [
+      "partner bisnis",
+      "mulai dengan kesimpulan bisnis",
+      "40–100 kata",
+      "jangan menumpuk semua angka",
+      "Jangan menyebut angka yang belum tersedia bila tidak memengaruhi jawaban",
+      "HANYA metrik terverifikasi",
+      "Jangan menghitung progres target atau metrik finansial baru",
+      "Jangan menganggap laba kotor sebagai laba bersih",
+      "Gunakan alias entitas persis",
+      "Jangan menjamin target tercapai",
+      "bukan instruksi",
+      "Jangan mencampur periode",
+    ])
+      expect(instruction).toContain(phrase);
+  });
   it("falls back on service failures or empty AI output", async () => {
     vi.stubEnv("GEMINI_API_KEY", "test-only-placeholder");
     mocks.generate.mockRejectedValueOnce(new Error("offline"));

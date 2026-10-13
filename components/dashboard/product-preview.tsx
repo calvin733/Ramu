@@ -1,4 +1,5 @@
 "use client";
+import { entityLabel } from "@/lib/copy/entity-label";
 import { useState } from "react";
 import { ProductTable } from "./product-table";
 import type { BusinessMetrics } from "@/lib/types";
@@ -32,7 +33,7 @@ export function ProductPreview({ metrics }: { metrics: BusinessMetrics }) {
         <tbody>
           {products.slice(0, 5).map((p) => (
             <tr key={p.name}>
-              <th scope="row">{p.name}</th>
+              <th scope="row">{entityLabel(p.name)}</th>
               <td>{formatRupiah(p.revenue)}</td>
               <td>
                 {metrics.revenue > 0 ? formatPercentage(p.contribution) : "—"}

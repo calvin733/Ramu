@@ -7,7 +7,7 @@ RAMU is a focused Next.js MVP with a Bahasa Indonesia interface: Dashboard, Data
 ## Page responsibilities
 
 - **Data Bisnis:** connect a source, then inspect the active filename, processed status, period, load date, and available capabilities. The uploader is shown again only through **Ganti Data**. **Lihat Mapping** reveals the confirmed column interpretation; invalid replacement files preserve active data. Demo data stays on this page until **Lihat Dashboard** is selected.
-- **Dashboard:** five compact KPIs, revenue trend beside Business Pulse, ranked channels, five products, synchronized period highlights, at most three deterministic insights, and two compact active goals. Product detail and recommendations use disclosures. **Kelola Data**, **Lihat Target**, and **Tanya RAMU** lead to dedicated pages.
+- **Dashboard:** five compact KPIs, revenue trend beside Kondisi Bisnis, ranked channels, five products, synchronized period highlights, at most three deterministic insights, and two compact active goals. Product detail and recommendations use disclosures. **Kelola Data**, **Lihat Target**, and **Tanya RAMU** lead to dedicated pages.
 - **Target Bisnis:** create, edit, enable/disable, and delete goals; inspect existing calculated progress, remaining amount, days, required pace, and goal coaching. Disabled goals remain manageable in a separate section. Goals can be created before business data is loaded.
 - **Tanya RAMU:** a compact source context and a full-width conversation. Suggested questions include goals only when active goals exist. Existing AI/basic mode badges, verified metric context, and deterministic fallback remain intact.
 
@@ -36,7 +36,7 @@ The adapted renderer intentionally enhances the background layer only. Native DO
 
 ## Executive Dashboard and grounded conversation
 
-The Dashboard uses a 12-column desktop grid: trend **8** + Business Pulse **4**; channels **3** + products **6** + highlights **3**; insights **8** + goals **4**. Laptop spans adapt to available width, tablet panels use two columns, and mobile stacks panels with fewer product columns. Five KPI values use the existing latest-window metrics, including unavailable states. The chart and highlights share daily/weekly/monthly selection over the full data range; best/lowest buckets are compared as recorded, may be partial at the boundaries, and ties choose the earliest bucket. Channel contribution divides each existing channel revenue by the total channel revenue, including unassigned revenue. A file with only `Tanpa kanal` gets no large channel panel. Zero denominators remain unavailable.
+The Dashboard uses a 12-column desktop grid: trend **8** + Kondisi Bisnis **4**; channels **3** + products **6** + highlights **3**; insights **8** + goals **4**. Laptop spans adapt to available width, tablet panels use two columns, and mobile stacks panels with fewer product columns. Five KPI values use the existing latest-window metrics, including unavailable states. The chart and highlights share daily/weekly/monthly selection over the full data range; best/lowest buckets are compared as recorded, may be partial at the boundaries, and ties choose the earliest bucket. Channel contribution divides each existing channel revenue by the total channel revenue, including unassigned revenue. A file with only `Tanpa kanal` gets no large channel panel. Zero denominators remain unavailable.
 
 `app/executive.css` refines the existing Liquid Glass tokens without adding GPU surfaces. The 60 px desktop topbar is transparent at the top, gaining a light sage background, blur, and divider after scrolling. It shows workspace information without repeating the page title. Dashboard entry and bar effects last 350–400 ms; the 270 px revenue chart animates on initial load and aggregation changes. Reduced motion disables these effects. There are no idle animation loops, analytics recalculations during animation, or hover network calls.
 
@@ -53,6 +53,12 @@ Tanya RAMU now follows **question → structured query → deterministic facts �
 Query results are bounded to eight channels, five ordinary product rows (up to eight explicit comparison entities), eight goals, and 64 numeric facts. These limits affect explanation size, not analytics; the Dashboard still allows product detail disclosure. Multi-topic requests, arbitrary date filtering, forecasts, and fuzzy name disambiguation are not supported. Facts are structurally validated client summaries, not independent server accounting. Gemini prose remains advisory and may need user review.
 
 The layout reference returned HTTP 403 in this environment; the implementation follows the supplied executive-density brief rather than claiming a visual match to the inaccessible shot.
+
+## Communication style
+
+RAMU leads with the business answer in friendly Indonesian, then selects only relevant verified facts and, when helpful, one practical next step. Ordinary answers aim for 2–4 short sentences; comparisons and reviews of several targets can be longer. `lib/copy/business-answer.ts` formats deterministic results without changing query interpretation, fact selection, rankings, or calculations. Missing costs, customer information, or predictions get specific business explanations; unrelated unavailable figures are omitted. Unknown entity labels are translated only for display, including names restored after Gemini's local aliases.
+
+Dashboard insight thresholds and goal formulas are unchanged. Their prose, goal status labels, data-status explanations, and shared Gemini system instruction now follow the same communication rules. Financial safety, period boundaries, server-only configuration, and aggregate/alias privacy restrictions remain intact. Without Gemini, the same concise deterministic answers are returned with `Analisis dasar`.
 
 ## Setup
 

@@ -55,7 +55,7 @@ export function GoalForm({
           setError(
             e instanceof Error && !e.message.startsWith("[")
               ? e.message
-              : "Periksa jenis target dan nilai positif. Target pesanan/unit harus berupa bilangan bulat.",
+              : "Masukkan target lebih dari nol. Untuk pesanan atau jumlah terjual, gunakan angka tanpa pecahan.",
           );
         }
       }}

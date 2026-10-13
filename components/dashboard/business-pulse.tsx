@@ -1,3 +1,4 @@
+import { entityLabel } from "@/lib/copy/entity-label";
 import Link from "next/link";
 import { Activity, ArrowUpRight } from "lucide-react";
 import type { BusinessMetrics, BusinessInsight } from "@/lib/types";
@@ -23,10 +24,10 @@ export function BusinessPulse({
   );
   const warning = insights.find((i) => i.kind === "warning");
   return (
-    <section className="panel business-pulse" aria-label="Business Pulse">
+    <section className="panel business-pulse" aria-label="Kondisi Bisnis">
       <div className="executive-heading">
         <h2>
-          <Activity size={18} /> Business Pulse
+          <Activity size={18} /> Kondisi Bisnis
         </h2>
         <span className="pulse-live">Dari data Anda</span>
       </div>
@@ -44,7 +45,7 @@ export function BusinessPulse({
           <div>
             <dt>Channel teratas</dt>
             <dd>
-              <strong>{channel.name}</strong>
+              <strong>{entityLabel(channel.name, "channel")}</strong>
               <span>
                 {channel.contribution === null
                   ? "Kontribusi belum tersedia"
@@ -57,7 +58,7 @@ export function BusinessPulse({
           <div>
             <dt>Produk utama</dt>
             <dd>
-              <strong>{product.name}</strong>
+              <strong>{entityLabel(product.name)}</strong>
               <span>
                 {metrics.revenue > 0
                   ? `${formatPercentage(product.contribution)} pendapatan`

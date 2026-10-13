@@ -19,9 +19,9 @@ export function PeriodHighlights({
         : undefined,
     );
   return (
-    <section className="panel period-highlights" aria-label="Highlight Periode">
+    <section className="panel period-highlights" aria-label="Sorotan Penjualan">
       <div className="executive-heading">
-        <h2>Highlight Periode</h2>
+        <h2>Sorotan Penjualan</h2>
         <p>Seluruh rentang grafik</p>
       </div>
       <dl className="signal-list">
@@ -44,20 +44,20 @@ export function PeriodHighlights({
           </>
         )}
         <div>
-          <dt>Pertumbuhan ringkasan</dt>
+          <dt>Perubahan penjualan</dt>
           <dd>
             <strong>
               {metrics.revenueGrowth === null
                 ? "Belum tersedia"
                 : `${metrics.revenueGrowth > 0 ? "+" : ""}${formatPercentage(metrics.revenueGrowth)}`}
             </strong>
-            <span>vs {metrics.period.days} hari sebelumnya</span>
+            <span>dibanding {metrics.period.days} hari sebelumnya</span>
           </dd>
         </div>
       </dl>
       <p className="executive-footnote">
-        Batas minggu/bulan dapat berisi periode parsial. Nilai sama memilih
-        periode paling awal; tanpa transaksi tercatat bernilai nol.
+        Awal atau akhir minggu dan bulan bisa belum mencakup seluruh hari.
+        Periode tanpa transaksi tercatat ditampilkan Rp0.
       </p>
     </section>
   );

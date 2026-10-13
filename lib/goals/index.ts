@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { entityLabel } from "@/lib/copy/entity-label";
 import type { UploadedData } from "@/lib/types";
 import { calculateProducts, calculateTotals } from "@/lib/analytics";
 import {
@@ -142,16 +143,18 @@ export function calculateGoal(
     goal.metric === "orders" &&
     !rows.every((t) => Boolean(t.orderId))
   )
-    missing = "Data nomor pesanan belum tersedia untuk seluruh penjualan.";
+    missing =
+      "Lengkapi nomor transaksi agar jumlah pesanan bisa dihitung dengan akurat.";
   if (data && goal.metric === "units" && !rows.every((t) => t.quantity > 0))
-    missing = "Data jumlah unit belum tersedia untuk seluruh penjualan.";
+    missing =
+      "Lengkapi jumlah barang yang terjual agar kemajuan target bisa dihitung dengan akurat.";
   if (
     data &&
     ["grossProfit", "netProfit"].includes(goal.metric) &&
     totals.cogs === null
   )
     missing =
-      "Data biaya produk belum tersedia lengkap. Tambahkan biaya per unit dan jumlah unit.";
+      "Data biaya produk belum lengkap. Tambahkan biaya per unit dan jumlah terjual agar keuntungan bisa dihitung dengan akurat.";
   const coveredExpenses = Boolean(
     data?.expenseCoverage &&
       data.expenseCoverage.start <= bounds.start &&
@@ -159,7 +162,7 @@ export function calculateGoal(
   );
   if (data && goal.metric === "netProfit" && !coveredExpenses)
     missing =
-      "Laba bersih membutuhkan biaya produk lengkap dan biaya operasional yang dikonfirmasi lengkap untuk periode ini.";
+      "Lengkapi biaya produk dan pastikan seluruh pengeluaran periode ini sudah tercatat agar laba bersih bisa dihitung dengan akurat.";
   const expenseTotal =
     data?.expenses
       .filter((e) => e.date >= bounds.start && e.date <= referenceDate)
@@ -221,15 +224,30 @@ export function calculateGoal(
   };
 }
 export const statusLabels = {
-  ahead: "Di atas target",
+  ahead: "Lebih cepat dari rencana",
   "on-track": "Sesuai jalur",
   behind: "Perlu dikejar",
   completed: "Tercapai",
 };
 export function goalInsight(p: GoalProgress) {
-  const title = `${metricLabels[p.goal.metric]} ${periodLabels[p.goal.period].toLowerCase()}`;
-  if (p.missing) return `${title}: ${p.missing}`;
-  return `${title} mencapai ${formatPercentage(p.progressPercentage!)} (${formatGoalValue(p.goal.metric, p.actual!)} dari ${formatGoalValue(p.goal.metric, p.target)}). ${statusLabels[p.paceStatus!]}; ${formatPercentage(p.expectedProgressToDate)} periode sudah berjalan. Sisa ${formatGoalValue(p.goal.metric, p.remaining!)}. ${p.daysRemaining} hari tersisa. ${p.requiredRemainingPace === null ? "Periode sudah selesai; tidak ada hari tersisa untuk mengejar target." : `Rata-rata yang dibutuhkan ${formatGoalValue(p.goal.metric, p.requiredRemainingPace)} per hari selama sisa periode.`}`;
+  const title = `Target ${metricLabels[p.goal.metric].toLowerCase()} ${periodLabels[p.goal.period].toLowerCase()}`;
+  if (p.missing) return `${title} belum bisa dipantau. ${p.missing}`;
+  const finding =
+    p.paceStatus === "completed"
+      ? "sudah tercapai"
+      : p.paceStatus === "ahead"
+        ? "berjalan lebih cepat dari rencana"
+        : p.paceStatus === "behind"
+          ? "masih tertinggal"
+          : "masih sesuai jalur";
+  const achievement = `Anda sudah mencapai ${formatPercentage(p.progressPercentage!)} (${formatGoalValue(p.goal.metric, p.actual!)} dari ${formatGoalValue(p.goal.metric, p.target)})${p.paceStatus === "behind" ? `, sementara sekitar ${formatPercentage(p.expectedProgressToDate)} periode sudah berjalan` : ""}.`;
+  if (p.paceStatus === "completed")
+    return `${title} ${finding}. ${achievement} Pertahankan produk dan channel yang paling banyak menyumbang penjualan.`;
+  const next =
+    p.daysRemaining === 0
+      ? `Periode sudah selesai; sisa ${formatGoalValue(p.goal.metric, p.remaining!)} belum tercapai. Tinjau penjualan periode ini sebelum menyusun target berikutnya.`
+      : `Sisa ${formatGoalValue(p.goal.metric, p.remaining!)}; perlu rata-rata ${formatGoalValue(p.goal.metric, p.requiredRemainingPace!)} per hari selama ${p.daysRemaining} hari tersisa.`;
+  return `${title} ${finding}. ${achievement} ${next}`;
 }
 export function goalIntent(question: string) {
   const q = question.toLowerCase();
@@ -266,11 +284,32 @@ export function answerGoalQuestion(question: string, progress: GoalProgress[]) {
     selected = selected.filter((p) => p.goal.metric === "grossProfit");
   if (!selected.length)
     return "Belum ada target aktif yang sesuai. Buat Target Bisnis terlebih dahulu agar RAMU dapat membantu memantau kemajuannya.";
+  const intent = goalIntent(question);
   return selected
     .slice(0, 8)
-    .map(
-      (p) =>
-        `${goalInsight(p)}\nProgress dihitung berdasarkan data terakhir: ${p.latestDataDate ? formatDate(p.latestDataDate) : "belum tersedia"}; tanggal acuan ${formatDate(p.referenceDate)}.${goalIntent(question) === "goal_supporting_products" ? (p.supportingProducts.length ? ` ${p.supportingProducts.map((x) => `${x.name} menyumbang ${formatPercentage(x.contribution)} pendapatan periode target`).join("; ")}. Kontribusi pendapatan tidak sama dengan kontribusi laba atau jumlah pesanan.` : " Data produk belum tersedia.") : ""}`,
-    )
+    .map((p) => {
+      const scope = `Periode ${formatDate(p.periodStart)}–${formatDate(p.periodEnd)}, dipantau hingga ${formatDate(p.referenceDate)}${p.latestDataDate && p.latestDataDate !== p.referenceDate ? `; data terakhir di file ${formatDate(p.latestDataDate)}` : ""}.`;
+      if (
+        intent === "goal_supporting_products" &&
+        p.supportingProducts.length
+      ) {
+        const top = p.supportingProducts[0];
+        return `${entityLabel(top.name)} paling banyak menyumbang penjualan untuk periode target ${metricLabels[p.goal.metric].toLowerCase()} ${periodLabels[p.goal.period].toLowerCase()}, dengan kontribusi ${formatPercentage(top.contribution)}. ${p.goal.metric === "revenue" ? "Pastikan produk ini tetap tersedia, lalu coba tawarkan bersama produk lain." : "Ini porsi penjualan, bukan porsi laba atau jumlah barang dan pesanan."} ${scope}`;
+      }
+      if (
+        !p.missing &&
+        (intent === "goal_remaining" || intent === "goal_pace")
+      ) {
+        const title = `target ${metricLabels[p.goal.metric].toLowerCase()} ${periodLabels[p.goal.period].toLowerCase()}`;
+        if (intent === "goal_pace" && p.remaining! > 0 && p.daysRemaining > 0)
+          return `Perlu rata-rata ${formatGoalValue(p.goal.metric, p.requiredRemainingPace!)} per hari selama ${p.daysRemaining} hari tersisa untuk mencapai ${title}. Sisa target ${formatGoalValue(p.goal.metric, p.remaining!)}. ${scope}`;
+        const finding =
+          p.remaining === 0
+            ? `Target ${metricLabels[p.goal.metric].toLowerCase()} ${periodLabels[p.goal.period].toLowerCase()} sudah tercapai.`
+            : `Masih perlu ${formatGoalValue(p.goal.metric, p.remaining!)} untuk mencapai ${title}.`;
+        return `${finding} ${p.remaining === 0 ? "" : p.daysRemaining > 0 ? `Perlu rata-rata ${formatGoalValue(p.goal.metric, p.requiredRemainingPace!)} per hari selama ${p.daysRemaining} hari tersisa.` : "Periode sudah selesai; tinjau penjualan periode ini sebelum menyusun target berikutnya."} ${scope}`;
+      }
+      return `${goalInsight(p)}${intent === "goal_supporting_products" ? " Nama produk belum lengkap, jadi saya belum bisa melihat produk pendukung target." : ""} ${scope}`;
+    })
     .join("\n\n");
 }

@@ -278,7 +278,7 @@ describe("demo, insights and deterministic chat", () => {
       m.orders.toLocaleString("id-ID"),
     );
     expect(answerQuestion("Siapa pelanggan terbaik?", m)).toContain(
-      "belum memiliki data pelanggan",
+      "data pelanggan belum tersedia",
     );
   });
   it("only sends bounded metric summaries to AI, never raw transactions", () => {

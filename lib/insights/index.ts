@@ -62,6 +62,7 @@ export function buildVerifiedContext(
   const selectedNames = new Set(
     answer.facts.map((f) => f.entity).filter(Boolean),
   );
+  const insightPreview = generateInsights(m).slice(0, 3);
   return {
     answer,
     channels: channelPerformance(m)
@@ -102,9 +103,9 @@ export function buildVerifiedContext(
     insights: generateInsights(m),
     fallback: question
       ? answer.fallbackText
-      : generateInsights(m)
-          .map((i) => `${i.body} ${i.action}`)
-          .join("\n\n"),
+      : insightPreview.length
+        ? `${insightPreview.map((i) => i.body).join(" ")} ${insightPreview[0].action}`
+        : answer.fallbackText,
   };
 }
 export type VerifiedContext = ReturnType<typeof buildVerifiedContext>;

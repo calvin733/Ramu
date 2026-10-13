@@ -42,7 +42,7 @@ export function MappingReview({
       setNotice(
         result.mode === "gemini"
           ? "RAMU memberi saran. Periksa pilihan kolom sebelum melanjutkan."
-          : "Pengenalan dasar tersedia. Anda dapat mengatur kolom sendiri tanpa AI.",
+          : "Anda tetap bisa memilih kolom sendiri meski bantuan AI belum tersedia.",
       );
     } catch {
       setNotice(
@@ -68,8 +68,8 @@ export function MappingReview({
         </Button>
       </div>
       <p>
-        RAMU menggunakan AI hanya untuk membantu mengenali struktur data.
-        Perhitungan bisnis tetap dilakukan oleh sistem RAMU.
+        Bantuan AI mengenali kolom file Anda. Angka bisnis tetap dihitung oleh
+        RAMU agar hasilnya konsisten.
       </p>
       <p className="supporting">
         File dan isi baris tetap di browser. Bantuan AI hanya menerima judul

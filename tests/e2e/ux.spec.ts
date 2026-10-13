@@ -153,7 +153,7 @@ test("Data → executive overview → goal → compact preview → business conv
     .getByRole("button", { name: "Bagaimana performa bisnis saya?" })
     .click();
   await expect(page.locator(".chat-message.assistant")).toContainText(
-    "Pendapatan",
+    "Penjualan",
   );
   await expect(page.locator(".message-mode")).toHaveText("Analisis dasar");
   await page
@@ -184,7 +184,7 @@ test("partial data, confirmed mapping, replacement, and deletion stay clear", as
   );
   await expect(page.getByRole("status")).toHaveText("Data berhasil diproses");
   await expect(
-    page.locator(".capability-statuses li").filter({ hasText: "HPP" }),
+    page.locator(".capability-statuses li").filter({ hasText: "Biaya produk" }),
   ).toContainText("Belum tersedia");
   await expect(
     page.locator(".capability-statuses li").filter({ hasText: "Pengeluaran" }),

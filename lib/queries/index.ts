@@ -6,14 +6,11 @@ import {
   periodLabels,
 } from "@/lib/goals";
 import { generateInsights } from "@/lib/insights/rules";
-import {
-  formatDate,
-  formatNumber,
-  formatPercentage,
-  formatRupiah,
-} from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import { channelPerformance } from "./aggregates";
 import { understandQuery, unsupportedReason } from "./understand";
+import { businessAnswerCopy } from "@/lib/copy/business-answer";
+import { entityLabel } from "@/lib/copy/entity-label";
 import type {
   BusinessFact,
   BusinessQuery,
@@ -25,7 +22,7 @@ const labels: Record<BusinessFact["field"], string> = {
   revenue: "Pendapatan",
   units: "Unit terjual",
   orders: "Pesanan",
-  aov: "Rata-rata pesanan",
+  aov: "Rata-rata nilai transaksi",
   grossProfit: "Laba kotor",
   margin: "Margin",
   growth: "Pertumbuhan pendapatan",
@@ -47,16 +44,6 @@ const fact = (
   format: BusinessFact["format"],
   entity?: string,
 ): BusinessFact => ({ field, value, format, ...(entity ? { entity } : {}) });
-const display = (f: BusinessFact) =>
-  f.value === null
-    ? "belum tersedia"
-    : f.format === "currency"
-      ? formatRupiah(f.value)
-      : f.format === "percent"
-        ? formatPercentage(f.value)
-        : formatNumber(f.value);
-const describe = (facts: BusinessFact[]) =>
-  facts.map((f) => `${labels[f.field]} ${display(f)}`).join("; ");
 
 export function answerBusinessQuery(
   question: string,
@@ -70,18 +57,15 @@ export function answerBusinessQuery(
     text: string,
     facts: BusinessFact[] = [],
     status: VerifiedBusinessAnswer["status"] = "answered",
-  ): VerifiedBusinessAnswer => ({
-    query,
-    status,
-    facts,
-    limitations,
-    fallbackText: text,
-  });
+  ): VerifiedBusinessAnswer => {
+    const answer = { query, status, facts, limitations, fallbackText: text };
+    return { ...answer, fallbackText: businessAnswerCopy(answer, m) };
+  };
   const unsupported = unsupportedReason(question);
   if (unsupported) return result(unsupported, [], "unsupported");
   if (!query)
     return result(
-      "Saya belum yakin informasi yang Anda maksud. Sebutkan metrik, produk, atau channel, misalnya ‘Berapa kontribusi Shopee?’ atau ‘Bandingkan dua produk’. Saya dapat membaca pendapatan, pesanan, unit, laba kotor, pertumbuhan, dan target dari data ini.",
+      "Apa yang ingin Anda lihat lebih dekat? Coba tanyakan penjualan, produk, channel, atau target bisnis Anda.",
       [],
       "clarification",
     );
@@ -95,7 +79,7 @@ export function answerBusinessQuery(
     let rows = all.filter((c) => c.name !== "Tanpa kanal");
     if (!rows.length)
       return result(
-        "Data channel belum tersedia pada file yang sedang digunakan.",
+        "Saya belum bisa membandingkan channel karena informasi channel penjualan belum tersedia. Tambahkan nama channel pada data penjualan Anda.",
         [],
         "unavailable",
       );
@@ -104,7 +88,7 @@ export function answerBusinessQuery(
       operation === "change"
     )
       return result(
-        "Agregat channel saat ini hanya menyediakan pendapatan dan kontribusi pendapatan. Unit, pesanan, laba, margin, dan pertumbuhan per channel belum tersedia.",
+        `Saya belum bisa menghitung ${operation === "change" ? "perubahan penjualan" : query.metric === "netProfit" ? "laba bersih" : (labels[query.metric as BusinessFact["field"]]?.toLowerCase() ?? "angka yang diminta")} per channel. Saat ini saya bisa membantu membandingkan penjualan antar-channel.`,
         [],
         "unavailable",
       );
@@ -132,22 +116,12 @@ export function answerBusinessQuery(
       fact("revenue", c.revenue, "currency", c.name),
       fact("contribution", c.contribution, "percent", c.name),
     ]);
-    const title = query.rank
-      ? `Peringkat ${query.rank} berdasarkan pendapatan`
-      : operation === "top"
-        ? "Channel dengan pendapatan terbesar"
-        : operation === "bottom"
-          ? "Channel dengan pendapatan terendah"
-          : "Channel penjualan";
-    return result(
-      `${title}: ${rows.map((c) => `${c.name}, ${formatRupiah(c.revenue)} (${c.contribution === null ? "kontribusi belum tersedia karena total pendapatan nol" : `${formatPercentage(c.contribution)} dari total pendapatan channel tercatat`})`).join("; ")}. ${scope}${all.some((c) => c.name === "Tanpa kanal") ? " Sebagian pendapatan berlabel Tanpa kanal; kategori ini masuk penyebut kontribusi tetapi bukan peringkat channel bernama." : ""}${all.length > 8 && !entities.length && !query.rank && !["top", "bottom"].includes(operation) ? " Ditampilkan maksimal 8 channel." : ""}`,
-      facts,
-    );
+    return result("Saya belum bisa menjelaskan penjualan per channel.", facts);
   }
   if (topic === "products") {
     if (!m.capabilities.products || !m.products.length)
       return result(
-        "Data nama produk belum tersedia lengkap untuk analisis produk.",
+        "Analisis produk belum tersedia karena nama produk belum lengkap. Tambahkan nama produk pada data penjualan Anda.",
         [],
         "unavailable",
       );
@@ -157,19 +131,19 @@ export function answerBusinessQuery(
         : (query.metric ?? "revenue");
     if (["orders", "aov", "netProfit"].includes(metric))
       return result(
-        "Agregat produk belum menyediakan pesanan, rata-rata pesanan, atau laba bersih per produk. Gunakan pendapatan, unit, laba kotor, margin, atau pertumbuhan pendapatan.",
+        `Saya belum bisa menghitung ${metric === "netProfit" ? "laba bersih" : labels[metric as BusinessFact["field"]]?.toLowerCase()} per produk. Saya bisa membantu membandingkan penjualan produk terlebih dahulu.`,
         [],
         "unavailable",
       );
     if (operation === "change" && !["revenue", "growth"].includes(metric))
       return result(
-        "Perubahan per produk yang tersedia hanya pertumbuhan pendapatan. Pertumbuhan unit, laba, dan margin per produk belum tersedia.",
+        `Saya belum bisa membandingkan perubahan ${labels[metric as BusinessFact["field"]]?.toLowerCase()} per produk. Saat ini saya bisa membandingkan perubahan penjualannya.`,
         [],
         "unavailable",
       );
     if (metric === "units" && !m.capabilities.units)
       return result(
-        "Data nama produk dan jumlah unit belum tersedia lengkap untuk menentukan produk terlaris atau jumlah unit.",
+        "Saya belum bisa menentukan produk paling laris karena jumlah terjual belum lengkap. Tambahkan jumlah barang yang terjual agar saya bisa membandingkannya.",
         [],
         "unavailable",
       );
@@ -180,7 +154,7 @@ export function answerBusinessQuery(
       return result(
         `Sebutkan nama produk yang tercatat. Untuk perbandingan, pilih dua produk dari data aktif: ${m.products
           .slice(0, 8)
-          .map((p) => p.name)
+          .map((p) => entityLabel(p.name))
           .join(", ")}.`,
         [],
         "clarification",
@@ -206,12 +180,17 @@ export function answerBusinessQuery(
     if (partial) limitations.push("available_products_only");
     if (key === "growth") limitations.push("historical_comparison");
     if (operation === "bottom") rows.reverse();
+    const availableCount = rows.length;
     if (query.rank) rows = rows.slice(query.rank - 1, query.rank);
     else if (["top", "bottom"].includes(operation)) rows = rows.slice(0, 1);
     else rows = rows.slice(0, operation === "compare" ? 8 : 5);
     if (!rows.length)
       return result(
-        `Data ${metric === "grossProfit" || metric === "margin" ? "biaya" : labels[key].toLowerCase()} atau peringkat yang diminta belum tersedia. Tidak ada nilai yang digantikan dengan nol.`,
+        availableCount > 0
+          ? "Produk pada peringkat itu belum ada. Coba pilih peringkat lain atau tanyakan produk teratas."
+          : metric === "grossProfit" || metric === "margin"
+            ? `Saya belum bisa membandingkan ${metric === "margin" ? "margin" : "keuntungan"} produk dengan akurat karena ${m.capabilities.units ? "data biaya produk" : "jumlah terjual"} belum lengkap. Lengkapi biaya produk dan jumlah terjual agar saya bisa membandingkannya.`
+            : `Saya belum bisa menilai produk pada peringkat ini karena ${labels[key].toLowerCase()} belum tersedia untuk perbandingan yang diminta.`,
         [],
         "unavailable",
       );
@@ -232,18 +211,8 @@ export function answerBusinessQuery(
       fact("margin", p.margin, "percent", p.name),
       fact("growth", p.growth, "percent", p.name),
     ]);
-    let intro = query.rank
-      ? `Produk peringkat ${query.rank} berdasarkan ${labels[key].toLowerCase()}: `
-      : operation === "top" && key === "units"
-        ? "Produk paling laris adalah "
-        : operation === "top" && key === "grossProfit"
-          ? "Produk dengan laba kotor terbesar: "
-          : operation === "top" && key === "margin"
-            ? "Produk dengan margin tertinggi: "
-            : `${ranking ? `Peringkat produk berdasarkan ${labels[key].toLowerCase()}` : "Analisis produk"}: `;
-    intro += `${rows.map((p) => p.name).join(", ")}. ${scope}${partial ? " Peringkat hanya mencakup produk dengan metrik tersedia." : ""}`;
     return result(
-      `${intro}\n\n${rows.map((p, i) => `${p.name}: ${describe(productFacts[i])}.`).join("\n\n")}`,
+      "Saya belum bisa menjelaskan penjualan produk ini.",
       productFacts.flat(),
       (key === "contribution" && m.revenue <= 0) ||
         rows.every((p) => p[key] === null)
@@ -285,7 +254,7 @@ export function answerBusinessQuery(
         !selected.some((p) => p.paceStatus === "behind")
       )
         return result(
-          "Tidak ada target berstatus Perlu dikejar di antara target dengan progress tersedia. Target tanpa data belum dapat dinilai.",
+          "Belum ada target yang tertinggal di antara target yang sudah bisa dipantau. Target tanpa data belum bisa dinilai.",
         );
       selected = selected.slice(0, 1);
     }
@@ -329,8 +298,11 @@ export function answerBusinessQuery(
     const warnings = generateInsights(m).filter((i) => i.kind === "warning");
     return result(
       warnings.length
-        ? warnings.map((i) => `${i.body} ${i.action}`).join("\n\n")
-        : "Tidak ada peringatan yang terpicu oleh aturan analisis pada periode ini. Tetap pantau perubahan pendapatan dan margin produk.",
+        ? warnings
+            .slice(0, 2)
+            .map((i) => `${i.body} ${i.action}`)
+            .join("\n\n")
+        : "Saat ini belum ada hal besar yang perlu dikhawatirkan dari angka bisnis yang tersedia. Tetap pantau penjualan dan biaya produk secara rutin.",
     );
   }
   const overview = [
@@ -367,7 +339,7 @@ export function answerBusinessQuery(
     const value = m[field];
     limitations.push("historical_comparison");
     return result(
-      `${scope} ${describe([fact(field, value, "percent")])}. Perbandingan dengan ${m.period.days} hari sebelumnya.`,
+      "Saya belum bisa membandingkan perubahan angka bisnis ini.",
       [fact(field, value, "percent")],
       value === null ? "unavailable" : "answered",
     );
@@ -377,13 +349,13 @@ export function answerBusinessQuery(
     !["growth", "overview", "revenue"].includes(topic)
   )
     return result(
-      "Perubahan metrik tersebut belum tersedia dalam jawaban ini. Tanyakan pertumbuhan pendapatan atau lihat indikator pembanding di Dashboard.",
+      "Saya belum bisa membandingkan perubahan angka tersebut. Saya bisa membantu melihat perubahan penjualan, atau Anda bisa melihat perbandingan lainnya di Dashboard.",
       [],
       "unavailable",
     );
   const facts = overview.filter((f) => fields[topic].includes(f.field));
   return result(
-    `${scope} ${describe(facts)}.${fields[topic].includes("growth") ? ` Pertumbuhan membandingkan ${m.period.days} hari sebelumnya; nilai belum tersedia jika data pembanding tidak cukup atau pendapatan awal nol.` : ""}${topic === "profit" ? " Laba kotor belum dikurangi biaya operasional dan pajak; biaya lengkap diperlukan untuk menghitungnya." : ""}`,
+    "Saya belum bisa menjelaskan angka bisnis yang diminta.",
     facts,
     facts.every((f) => f.value === null) ? "unavailable" : "answered",
   );

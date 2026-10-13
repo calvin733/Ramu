@@ -10,10 +10,10 @@ import type { BusinessMetrics } from "@/lib/types";
 import { formatRupiah, formatNumber } from "@/lib/utils";
 export function DashboardSummary({ metrics: m }: { metrics: BusinessMetrics }) {
   return (
-    <section className="executive-summary" aria-label="Ringkasan KPI bisnis">
+    <section className="executive-summary" aria-label="Ringkasan bisnis">
       <div className="period-row">
         <span>Ringkasan {m.period.days} hari terakhir dalam data</span>
-        <span>Perubahan vs periode dengan durasi sama</span>
+        <span>Dibanding periode sebelumnya dengan durasi sama</span>
       </div>
       <div className="kpi-grid">
         <KpiCard
@@ -35,7 +35,9 @@ export function DashboardSummary({ metrics: m }: { metrics: BusinessMetrics }) {
           days={m.period.days}
           icon={CircleDollarSign}
           note={
-            m.grossProfit === null ? "Lengkapi jumlah unit dan HPP" : undefined
+            m.grossProfit === null
+              ? "Lengkapi jumlah terjual dan biaya produk"
+              : undefined
           }
         />
         <KpiCard
@@ -50,7 +52,7 @@ export function DashboardSummary({ metrics: m }: { metrics: BusinessMetrics }) {
           note={!m.capabilities.orders ? "Tambahkan nomor pesanan" : undefined}
         />
         <KpiCard
-          label="Rata-rata Pesanan"
+          label="Rata-rata Nilai Transaksi"
           unavailable={!m.capabilities.orders}
           value={m.capabilities.orders ? formatRupiah(m.aov) : "Belum tersedia"}
           growth={m.aovGrowth}
