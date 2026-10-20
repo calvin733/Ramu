@@ -81,12 +81,14 @@ test("Data → executive overview → goal → compact preview → business conv
   await expect(page.locator(".capability-statuses .available")).toHaveCount(6);
   await expect(page.locator(".upload-dropzone")).toHaveCount(0);
   await page.getByRole("link", { name: "Lihat Dashboard" }).click();
-  await expect(page.locator(".kpi-card")).toHaveCount(5);
+  await expect(page.locator(".kpi-card")).toHaveCount(4);
   await expect(
-    page.getByRole("heading", { name: "Yang Perlu Anda Tahu" }),
+    page.getByRole("heading", { name: "Yang Perlu Anda Perhatikan" }),
   ).toBeVisible();
-  expect(await page.locator(".insight-card").count()).toBeLessThanOrEqual(3);
-  await expect(page.locator(".executive-product-table tbody tr")).toHaveCount(5);
+  expect(await page.locator(".insight-card").count()).toBeLessThanOrEqual(2);
+  await expect(page.locator(".executive-product-table tbody tr")).toHaveCount(
+    5,
+  );
   await expect(page.locator(".product-table")).toHaveCount(0);
   await page.getByRole("link", { name: "Buat Target", exact: true }).click();
   await expect(
@@ -128,9 +130,7 @@ test("Data → executive overview → goal → compact preview → business conv
   await expect(page.getByRole("button", { name: "Edit Target" })).toHaveCount(
     0,
   );
-  await expect(
-    page.getByRole("link", { name: "Lihat Target" }),
-  ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Lihat Target" })).toBeVisible();
   await page
     .locator(".insights-section")
     .getByRole("link", { name: "Tanya RAMU" })
@@ -176,9 +176,8 @@ test("partial data, confirmed mapping, replacement, and deletion stay clear", as
       "Tanggal,No Invoice,Nama Barang,Qty,Harga\n2026-09-30,A,Brownie,2,50000",
     ),
   });
-  await page
-    .getByRole("button", { name: "Konfirmasi & Analisis Data" })
-    .click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await navigate(page, "Data Bisnis");
   await expect(page.locator(".active-filename")).toHaveText(
     "Penjualan September.csv",
   );
@@ -215,12 +214,7 @@ test("partial data, confirmed mapping, replacement, and deletion stay clear", as
     mimeType: "text/csv",
     buffer: Buffer.from("Nama,Jumlah\nBrownie,2"),
   });
-  await page
-    .getByRole("button", { name: "Konfirmasi & Analisis Data" })
-    .click();
-  await expect(page.locator(".upload-error[role=alert]")).toContainText(
-    "Data yang sebelumnya digunakan tetap tersedia",
-  );
+  await expect(page.locator(".import-clarification")).toContainText("tanggal");
   await expect(page.locator(".active-filename")).toHaveText(
     "Penjualan September.csv",
   );
@@ -229,9 +223,8 @@ test("partial data, confirmed mapping, replacement, and deletion stay clear", as
     mimeType: "text/csv",
     buffer: Buffer.from("Tanggal,Pendapatan\n2026-09-30,90000"),
   });
-  await page
-    .getByRole("button", { name: "Konfirmasi & Analisis Data" })
-    .click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await navigate(page, "Data Bisnis");
   await expect(page.locator(".active-filename")).toHaveText("Ringkasan.csv");
   await expect(page.locator(".upload-dropzone")).toHaveCount(0);
   await expect(
@@ -243,9 +236,7 @@ test("partial data, confirmed mapping, replacement, and deletion stay clear", as
   );
   await page.getByRole("link", { name: "Lihat Dashboard" }).click();
   await expect(page.locator(".kpi-card").first()).toContainText("Rp90.000");
-  await expect(page.locator(".kpi-card").nth(2)).toContainText(
-    "Belum tersedia",
-  );
+  await expect(page.locator(".kpi-card")).toHaveCount(1);
   await navigate(page, "Data Bisnis");
   page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Hapus Data" }).click();
@@ -264,9 +255,7 @@ test("goals show required pace, retain enable state on edit, and limit dashboard
     mimeType: "text/csv",
     buffer: Buffer.from("Tanggal,Pendapatan\n2020-01-15,100000"),
   });
-  await page
-    .getByRole("button", { name: "Konfirmasi & Analisis Data" })
-    .click();
+  await expect(page).toHaveURL(/\/dashboard$/);
   await navigate(page, "Target Bisnis");
   await createGoal(page, "1000000");
   await expect(page.locator(".goal-reminder")).toContainText(
@@ -292,7 +281,7 @@ test("goals show required pace, retain enable state on edit, and limit dashboard
   await page.getByRole("button", { name: "Simpan Target" }).click();
   await expect(page.locator(".goal-card")).toHaveCount(4);
   await navigate(page, "Dashboard");
-  await expect(page.locator(".goal-preview-card")).toHaveCount(2);
+  await expect(page.locator(".goal-preview-card")).toHaveCount(1);
   await expect(
     page.locator(".dashboard-goals .goal-card, .dashboard-goals button"),
   ).toHaveCount(0);

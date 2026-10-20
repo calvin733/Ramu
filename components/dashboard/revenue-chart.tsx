@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import type { BusinessMetrics } from "@/lib/types";
 import { formatDate, formatRupiah } from "@/lib/utils";
+import { completeTrendPeriods } from "@/lib/dashboard/periods";
 
 export function RevenueChart({
   metrics,
@@ -128,6 +129,13 @@ export function RevenueChart({
           </AreaChart>
         </ResponsiveContainer>
       </div>
+      {completeTrendPeriods(metrics, unit).partialCount > 0 && (
+        <p className="executive-footnote">
+          {unit === "month" ? "Bulan" : "Minggu"} di batas awal atau akhir data
+          belum lengkap. Angkanya belum dapat dibandingkan sebagai periode
+          penuh.
+        </p>
+      )}
       <details className="chart-accessible">
         <summary>Lihat angka pendapatan</summary>
         <div className="accessible-table">

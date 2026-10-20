@@ -1,5 +1,6 @@
 "use client";
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 import { useBusiness } from "@/components/business-provider";
 import { ActiveDataCard } from "@/components/data/active-data-card";
@@ -9,6 +10,7 @@ import { UploadDataSection } from "@/components/data/upload-data-section";
 import { useContentNavigation } from "@/components/hooks/use-content-navigation";
 
 export default function DataPage() {
+  const router = useRouter();
   const {
     data,
     metrics,
@@ -116,6 +118,7 @@ export default function DataPage() {
               setData(next);
               setMappingSummary(mapping);
               complete();
+              router.push("/dashboard");
             }}
           />
         )}

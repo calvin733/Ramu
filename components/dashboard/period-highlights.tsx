@@ -1,6 +1,7 @@
 import type { BusinessMetrics } from "@/lib/types";
 import { trendExtremes, type TrendUnit } from "@/lib/queries/aggregates";
-import { formatDate, formatPercentage, formatRupiah } from "@/lib/utils";
+import { formatDate, formatRupiah } from "@/lib/utils";
+import { completeTrendPeriods } from "@/lib/dashboard/periods";
 export function PeriodHighlights({
   metrics,
   unit,
@@ -8,7 +9,8 @@ export function PeriodHighlights({
   metrics: BusinessMetrics;
   unit: TrendUnit;
 }) {
-  const extremes = trendExtremes(metrics.trends[unit]);
+  const { complete, partialCount } = completeTrendPeriods(metrics, unit);
+  const extremes = complete.length >= 2 ? trendExtremes(complete) : null;
   const period =
     unit === "month" ? "Bulan" : unit === "week" ? "Minggu" : "Hari";
   const date = (d: string) =>
@@ -22,7 +24,11 @@ export function PeriodHighlights({
     <section className="panel period-highlights" aria-label="Sorotan Penjualan">
       <div className="executive-heading">
         <h2>Sorotan Penjualan</h2>
-        <p>Seluruh rentang grafik</p>
+        <p>
+          {unit === "day"
+            ? "Hari dalam rentang grafik"
+            : "Hanya periode kalender lengkap"}
+        </p>
       </div>
       <dl className="signal-list">
         {extremes && (
@@ -43,20 +49,26 @@ export function PeriodHighlights({
             </div>
           </>
         )}
-        <div>
-          <dt>Perubahan penjualan</dt>
-          <dd>
-            <strong>
-              {metrics.revenueGrowth === null
-                ? "Belum tersedia"
-                : `${metrics.revenueGrowth > 0 ? "+" : ""}${formatPercentage(metrics.revenueGrowth)}`}
-            </strong>
-            <span>dibanding {metrics.period.days} hari sebelumnya</span>
-          </dd>
-        </div>
+        {!extremes && complete.length === 1 && (
+          <div>
+            <dt>{period} tercatat</dt>
+            <dd>
+              <strong>{date(complete[0].date)}</strong>
+              <span>{formatRupiah(complete[0].revenue)}</span>
+            </dd>
+          </div>
+        )}
       </dl>
+      {!complete.length && (
+        <p>
+          Belum ada {period.toLowerCase()} penuh untuk dibandingkan. Lihat
+          transaksi yang tercatat pada grafik.
+        </p>
+      )}
       <p className="executive-footnote">
-        Awal atau akhir minggu dan bulan bisa belum mencakup seluruh hari.
+        {partialCount > 0
+          ? "Periode awal atau akhir yang belum lengkap tetap tampil di grafik, tetapi tidak diranking di sini. "
+          : ""}
         Periode tanpa transaksi tercatat ditampilkan Rp0.
       </p>
     </section>

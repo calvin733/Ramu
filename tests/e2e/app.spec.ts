@@ -31,8 +31,8 @@ test("demo dashboard, charts, product rankings, insights and fallback chat", asy
   await expect(
     page.getByRole("img", { name: /Pendapatan bulanan/ }),
   ).toBeVisible();
-  await expect(page.locator(".insight-card").nth(1)).toBeVisible();
-  expect(await page.locator(".insight-card").count()).toBeLessThanOrEqual(3);
+  await expect(page.locator(".insight-card").first()).toBeVisible();
+  expect(await page.locator(".insight-card").count()).toBeLessThanOrEqual(2);
   await expect(page.locator(".executive-product-table tbody tr")).toHaveCount(
     5,
   );
@@ -72,7 +72,7 @@ test("demo dashboard, charts, product rankings, insights and fallback chat", asy
     .getByRole("navigation")
     .getByRole("link", { name: "Dashboard" })
     .click();
-  await expect(page.locator(".kpi-card")).toHaveCount(5);
+  await expect(page.locator(".kpi-card")).toHaveCount(4);
   expect(errors).toEqual([]);
 });
 
@@ -90,36 +90,32 @@ test("CSV upload, missing COGS and friendly invalid upload preserve existing dat
       "date,order_id,product_name,quantity,unit_price\n2026-09-30,A,Brownie,2,50000\n2026-09-30,B,Brownie,1,50000",
     ),
   });
-  await page
-    .getByRole("button", { name: "Konfirmasi & Analisis Data" })
-    .click();
+  await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.getByRole("status")).toContainText(
     "Data berhasil diproses",
   );
-  await expect(page.getByText("penjualan.csv", { exact: true })).toBeVisible();
+  await page
+    .getByRole("navigation")
+    .getByRole("link", { name: "Data Bisnis", exact: true })
+    .click();
+  await expect(page.locator(".active-filename")).toHaveText("penjualan.csv");
   await page.getByRole("button", { name: "Ganti Data", exact: true }).click();
   await page.getByTestId("file-input").setInputFiles({
     name: "salah.csv",
     mimeType: "text/csv",
     buffer: Buffer.from("nama,jumlah\nBrownie,3"),
   });
-  await page
-    .getByRole("button", { name: "Konfirmasi & Analisis Data" })
-    .click();
-  await expect(page.locator(".upload-error")).toContainText(
-    "RAMU belum dapat mengenali beberapa bagian data Anda.",
-  );
-  await expect(page.locator(".upload-error")).toContainText(
-    "Pilih kolom tanggal dan pendapatan",
-  );
+  await expect(page.locator(".import-clarification")).toContainText("tanggal");
   await expect(page.getByText("penjualan.csv", { exact: true })).toBeVisible();
   await page.getByRole("link", { name: "Lihat Dashboard" }).click();
   await expect(
     page.getByText("Rp150.000", { exact: true }).first(),
   ).toBeVisible();
+  await page.getByText("Angka lainnya", { exact: true }).click();
   await expect(page.getByText("Rp75.000", { exact: true })).toBeVisible();
-  await expect(page.locator(".kpi-card").nth(1)).toContainText(
-    "Belum tersedia",
+  await expect(page.locator(".kpi-card")).toHaveCount(2);
+  await expect(page.locator(".executive-summary")).not.toContainText(
+    "Laba Kotor",
   );
   await page.getByText("Lihat analisis lengkap", { exact: true }).click();
   await expect(page.locator(".product-table tbody tr").first()).toContainText(
@@ -166,13 +162,11 @@ test("Excel upload imports case-insensitive sheets and computes exact COGS profi
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     buffer: XLSX.write(book, { type: "buffer", bookType: "xlsx" }),
   });
-  await page
-    .getByRole("button", { name: "Konfirmasi & Analisis Data" })
-    .click();
+  await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.getByRole("status")).toContainText(
     "Data berhasil diproses",
   );
-  await page.getByRole("link", { name: "Lihat Dashboard" }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.getByText("Rp90.000", { exact: true })).toBeVisible();
   await page.getByText("Lihat analisis lengkap", { exact: true }).click();
   await expect(page.locator(".product-table")).toContainText("60%");
@@ -206,9 +200,7 @@ test("template downloads produce usable files and data resets on full reload", a
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     buffer: await readFile(path!),
   });
-  await page
-    .getByRole("button", { name: "Konfirmasi & Analisis Data" })
-    .click();
+  await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.getByRole("status")).toBeVisible();
   await page.reload();
   await page
@@ -260,7 +252,7 @@ test("demo KPI values stay inside their cards on narrow screens", async ({
 }) => {
   await page.setViewportSize({ width: 320, height: 844 });
   await page.getByRole("button", { name: "Gunakan Data Demo" }).click();
-  await expect(page.locator(".kpi-card")).toHaveCount(5);
+  await expect(page.locator(".kpi-card")).toHaveCount(4);
 
   const cards = await page.locator(".kpi-card").evaluateAll((elements) =>
     elements.map((card) => {

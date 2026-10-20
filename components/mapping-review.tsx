@@ -17,11 +17,13 @@ export function MappingReview({
   onChange,
   onConfirm,
   onCancel,
+  disabled = false,
 }: {
   document: ImportDocument;
   onChange: (d: ImportDocument) => void;
   onConfirm: (expensesComplete: boolean) => void;
   onCancel: () => void;
+  disabled?: boolean;
 }) {
   const [busy, setBusy] = useState(false),
     [notice, setNotice] = useState(""),
@@ -56,12 +58,12 @@ export function MappingReview({
     <section className="panel mapping-review" aria-label="Atur Kolom">
       <div className="panel-heading">
         <div>
-          <h2>RAMU mencoba memahami data Anda.</h2>
+          <h2>Pilihan kolom</h2>
           <p>Periksa jenis data dan pilih cara membaca kolom file.</p>
         </div>
         <Button
           variant="secondary"
-          disabled={busy}
+          disabled={busy || disabled}
           onClick={() => void assist()}
         >
           Biarkan RAMU Membantu
@@ -72,9 +74,9 @@ export function MappingReview({
         RAMU agar hasilnya konsisten.
       </p>
       <p className="supporting">
-        File dan isi baris tetap di browser. Bantuan AI hanya menerima judul
-        sheet, kolom, dan jenis isi; kolom yang diduga berisi data pribadi
-        dikecualikan.
+        Dengan memilih bantuan AI, Anda mengirim judul sheet, kolom, dan jenis
+        isi; kolom yang diduga berisi data pribadi dikecualikan. File dan isi
+        baris tetap di browser.
       </p>
       {notice && <p role="status">{notice}</p>}
       {document.sheets.map((sheet, i) => (
@@ -84,7 +86,7 @@ export function MappingReview({
             <select
               aria-label={`Jenis data ${sheet.name}`}
               value={sheet.sheetType}
-              disabled={busy}
+              disabled={busy || disabled}
               onChange={(e) => {
                 const sheetType = e.target.value as SheetType;
                 onChange({
@@ -139,7 +141,7 @@ export function MappingReview({
                       <td>
                         <select
                           aria-label={`Dibaca sebagai ${m.source} (${sheet.name})`}
-                          disabled={busy || isPii(m.source)}
+                          disabled={busy || disabled || isPii(m.source)}
                           value={m.target}
                           onChange={(e) =>
                             onChange({
@@ -195,6 +197,7 @@ export function MappingReview({
           <input
             type="checkbox"
             checked={complete}
+            disabled={busy || disabled}
             onChange={(e) => setComplete(e.target.checked)}
           />
           Data biaya operasional lengkap untuk periode unggahan, termasuk hari
@@ -202,10 +205,10 @@ export function MappingReview({
         </label>
       )}
       <div className="form-actions">
-        <Button disabled={busy} onClick={() => onConfirm(complete)}>
+        <Button disabled={busy || disabled} onClick={() => onConfirm(complete)}>
           Konfirmasi & Analisis Data
         </Button>
-        <Button variant="ghost" disabled={busy} onClick={onCancel}>
+        <Button variant="ghost" disabled={busy || disabled} onClick={onCancel}>
           Batal
         </Button>
       </div>

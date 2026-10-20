@@ -8,13 +8,14 @@ import { DashboardSummary } from "@/components/dashboard/dashboard-summary";
 import { ChannelPerformance } from "@/components/dashboard/channel-performance";
 import { BusinessPulse } from "@/components/dashboard/business-pulse";
 import { ProductPreview } from "@/components/dashboard/product-preview";
+import { dashboardDecisions } from "@/lib/dashboard/decisions";
 const m = analyzeBusiness(createDemoData())!;
 describe("capability-aware executive presentation", () => {
-  it("renders five real KPIs without manufacturing unavailable zeros", () => {
+  it("prioritizes four available KPIs without manufacturing unavailable zeros", () => {
     const full = renderToStaticMarkup(
       createElement(DashboardSummary, { metrics: m }),
     );
-    expect(full.match(/class="panel kpi-card"/g)).toHaveLength(5);
+    expect(full.match(/class="panel kpi-card"/g)).toHaveLength(4);
     expect(full).toContain(m.units.toLocaleString("id-ID"));
     expect(full).not.toContain("kpi-value-missing");
     const partial = {
@@ -25,8 +26,9 @@ describe("capability-aware executive presentation", () => {
     const html = renderToStaticMarkup(
       createElement(DashboardSummary, { metrics: partial }),
     );
-    expect(html.match(/Belum tersedia/g)).toHaveLength(4);
-    expect(html.match(/kpi-value-missing/g)).toHaveLength(4);
+    expect(html.match(/class="panel kpi-card"/g)).toHaveLength(2);
+    expect(html).not.toContain("Belum tersedia");
+    expect(html).not.toContain("kpi-value-missing");
     expect(html).not.toContain("Rp0");
   });
   it("does not allocate an empty channel panel or invent pulse signals", () => {
@@ -43,14 +45,12 @@ describe("capability-aware executive presentation", () => {
     ).toBe("");
     const pulse = renderToStaticMarkup(
       createElement(BusinessPulse, {
-        metrics: partial,
-        insights: [],
-        goals: [],
+        decision: dashboardDecisions(partial, [], [])[0],
       }),
     );
     expect(pulse).not.toContain("Channel teratas");
     expect(pulse).not.toContain("Produk utama");
-    expect(pulse).toContain("Pendapatan tersedia");
+    expect(pulse).toContain("Angka pendukung");
   });
   it("uses existing product rows with unavailable columns omitted", () => {
     const partial = {
@@ -70,11 +70,9 @@ describe("capability-aware executive presentation", () => {
     expect(html).toContain("Lihat analisis lengkap");
     const pulse = renderToStaticMarkup(
       createElement(BusinessPulse, {
-        metrics: m,
-        insights: generateInsights(m),
-        goals: [],
+        decision: dashboardDecisions(m, generateInsights(m), [])[0],
       }),
     );
-    expect(pulse).toContain(m.channels[0].name);
+    expect(pulse).toContain("Langkah berikutnya");
   });
 });

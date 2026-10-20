@@ -16,7 +16,7 @@ const upload = async (
     buffer: Buffer.from(content),
   });
 };
-test("Indonesian aliases and arbitrary Excel sheets are reviewed and analyzed", async ({
+test("Indonesian aliases and clear Excel sheets are automatically analyzed", async ({
   page,
 }) => {
   const book = XLSX.utils.book_new();
@@ -41,25 +41,15 @@ test("Indonesian aliases and arbitrary Excel sheets are reviewed and analyzed", 
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     buffer: XLSX.write(book, { type: "buffer", bookType: "xlsx" }),
   });
-  await expect(
-    page.getByLabel("Dibaca sebagai Tanggal (Transaksi April)"),
-  ).toHaveValue("date");
-  await expect(
-    page.getByLabel("Dibaca sebagai No Invoice (Transaksi April)"),
-  ).toHaveValue("order_id");
-  await expect(
-    page.getByLabel("Dibaca sebagai Nama Barang (Transaksi April)"),
-  ).toHaveValue("product_name");
-  await page
-    .getByRole("button", { name: "Konfirmasi & Analisis Data" })
-    .click();
-  await page.getByRole("link", { name: "Lihat Dashboard" }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page.locator(".mapping-review")).toHaveCount(0);
   await expect(page.locator(".kpi-card").first()).toContainText("Rp190.000");
 });
 test("manual mapping works without AI and absent metrics stay unavailable", async ({
   page,
 }) => {
   await upload(page, "ambigu.csv", "Kapan,Angka\n2026-09-20,123000");
+  await page.getByText("Atur kolom secara manual", { exact: true }).click();
   await page.getByRole("button", { name: "Biarkan RAMU Membantu" }).click();
   await expect(page.getByRole("status")).toContainText("memilih kolom sendiri");
   await page
@@ -71,13 +61,12 @@ test("manual mapping works without AI and absent metrics stay unavailable", asyn
   await page
     .getByRole("button", { name: "Konfirmasi & Analisis Data" })
     .click();
-  await page.getByRole("link", { name: "Lihat Dashboard" }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.locator(".kpi-card").first()).toContainText("Rp123.000");
-  await expect(page.locator(".kpi-card").nth(2)).toContainText(
-    "Belum tersedia",
-  );
-  await expect(page.locator(".kpi-card").nth(3)).toContainText(
-    "Belum tersedia",
+  await expect(page.locator(".kpi-card")).toHaveCount(1);
+  await expect(page.locator(".executive-summary")).not.toContainText("Pesanan");
+  await expect(page.locator(".executive-summary")).not.toContainText(
+    "Laba Kotor",
   );
   await expect(page.locator(".product-table")).toHaveCount(0);
 });

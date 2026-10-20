@@ -7,6 +7,10 @@ import { formatNumber, formatPercentage, formatRupiah } from "@/lib/utils";
 export function ProductPreview({ metrics }: { metrics: BusinessMetrics }) {
   const [expanded, setExpanded] = useState(false);
   const { products } = metrics;
+  const profitLeader =
+    products.length && products.every((p) => p.grossProfit !== null)
+      ? products.toSorted((a, b) => b.grossProfit! - a.grossProfit!)[0]
+      : null;
   return (
     <section
       className="panel product-preview executive-products"
@@ -16,6 +20,13 @@ export function ProductPreview({ metrics }: { metrics: BusinessMetrics }) {
         <h2>Performa Produk</h2>
         <p>Lima kontributor pendapatan terbesar</p>
       </div>
+      {profitLeader && (
+        <p className="product-profit-focus">
+          Laba kotor terbesar: <strong>{entityLabel(profitLeader.name)}</strong>{" "}
+          · {formatRupiah(profitLeader.grossProfit!)}. Peringkat penjualan di
+          bawah bisa berbeda dari peringkat keuntungan.
+        </p>
+      )}
       <table className="executive-product-table">
         <thead>
           <tr>

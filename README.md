@@ -6,8 +6,8 @@ RAMU is a focused Next.js MVP with a Bahasa Indonesia interface: Dashboard, Data
 
 ## Page responsibilities
 
-- **Data Bisnis:** connect a source, then inspect the active filename, processed status, period, load date, and available capabilities. The uploader is shown again only through **Ganti Data**. **Lihat Mapping** reveals the confirmed column interpretation; invalid replacement files preserve active data. Demo data stays on this page until **Lihat Dashboard** is selected.
-- **Dashboard:** five compact KPIs, revenue trend beside Kondisi Bisnis, ranked channels, five products, synchronized period highlights, at most three deterministic insights, and two compact active goals. Product detail and recommendations use disclosures. **Kelola Data**, **Lihat Target**, and **Tanya RAMU** lead to dedicated pages.
+- **Data Bisnis:** connect a source, then inspect the active filename, processed status, period, load date, and available capabilities. The uploader is shown again only through **Ganti Data**. **Lihat Mapping** reveals the confirmed column interpretation; invalid replacement files preserve active data. Demo data stays on this page until **Lihat Dashboard** is selected. Recognizable uploads are validated locally and lead directly to Dashboard; uncertain files ask only for needed corrections.
+- **Dashboard:** supported summary KPIs, one evidence-backed business priority with a visible next step, sales trend and complete-period highlights, product/channel focus, up to two distinct secondary considerations, and one relevant active goal. AOV, units, margin and product detail use disclosures. **Kelola Data**, **Lihat Target**, and **Tanya RAMU** lead to dedicated pages.
 - **Target Bisnis:** create, edit, enable/disable, and delete goals; inspect existing calculated progress, remaining amount, days, required pace, and goal coaching. Disabled goals remain manageable in a separate section. Goals can be created before business data is loaded.
 - **Tanya RAMU:** a compact source context and a full-width conversation. Suggested questions include goals only when active goals exist. Existing AI/basic mode badges, verified metric context, and deterministic fallback remain intact.
 
@@ -36,7 +36,11 @@ The adapted renderer intentionally enhances the background layer only. Native DO
 
 ## Executive Dashboard and grounded conversation
 
-The Dashboard uses a 12-column desktop grid: trend **8** + Kondisi Bisnis **4**; channels **3** + products **6** + highlights **3**; insights **8** + goals **4**. Laptop spans adapt to available width, tablet panels use two columns, and mobile stacks panels with fewer product columns. Five KPI values use the existing latest-window metrics, including unavailable states. The chart and highlights share daily/weekly/monthly selection over the full data range; best/lowest buckets are compared as recorded, may be partial at the boundaries, and ties choose the earliest bucket. Channel contribution divides each existing channel revenue by the total channel revenue, including unassigned revenue. A file with only `Tanpa kanal` gets no large channel panel. Zero denominators remain unavailable.
+The Dashboard keeps the existing 12-column Liquid Glass grid, but changes information priority: summary → one business decision → trend and period highlights → products/channels → compact goal monitoring. Sales, comparable historical change, orders and gross profit appear only when supported. Other figures are available in **Angka lainnya**. Revenue-only data has no fake order/profit/product/channel cards.
+
+`lib/dashboard/decisions.ts` selects at most three distinct topics with explicit rule ordering and references to existing metric evidence. It reuses existing growth/concentration/margin findings, adds existing behind-pace goals and major-product growth facts, and does not turn missing cost data into a business problem unless an explicit goal requires it. Business Pulse shows the primary finding/action; secondary insights exclude it. One enabled goal is selected by existing pace status and remaining time. See [the decision framework](docs/dashboard-decision-framework.md). Financial calculations and Tanya RAMU's facts remain unchanged.
+
+The chart still shows the complete uploaded range, separate from the latest summary window and goal calendar periods. Highlight rankings exclude incomplete weekly/monthly edges; the original aggregate values stay visible in the chart with a short period note. Single-period data is never labelled both best and worst.
 
 `app/executive.css` refines the existing Liquid Glass tokens without adding GPU surfaces. The 60 px desktop topbar is transparent at the top, gaining a light sage background, blur, and divider after scrolling. It shows workspace information without repeating the page title. Dashboard entry and bar effects last 350–400 ms; the 270 px revenue chart animates on initial load and aggregation changes. Reduced motion disables these effects. There are no idle animation loops, analytics recalculations during animation, or hover network calls.
 
@@ -83,11 +87,15 @@ Optional: copy `.env.example` to `.env.local`, set `GEMINI_API_KEY`, and restart
 
 ## Smart Data Import
 
-1. Upload XLSX or CSV on `/data`. RAMU reads the file locally and proposes sheet classifications and column matches.
-2. Review **Kolom File → Dibaca Sebagai → Status**. Change the data type or column dropdowns, or ignore irrelevant sheets/columns. Confidence appears as **Tinggi** or **Perlu dicek**.
-3. If needed, choose **Biarkan RAMU Membantu** for an optional Gemini suggestion. Without a key or during provider failure, deterministic matching and manual controls remain available.
-4. Click **Konfirmasi & Analisis Data**. Only then are rows validated, converted locally, and used for analytics. A failed import preserves the previous dataset.
-5. Review the available capabilities and open Dashboard.
+1. Upload XLSX or CSV on `/data`. **Menyiapkan analisis bisnis Anda...** covers local inspection and validation, without artificial waiting.
+2. `lib/mapping/automatic.ts` accepts only an unambiguous sales interpretation with validated rows, clear financial meanings and no unresolved populated sheets. It does not send anything to AI automatically. Recognized aliases alone are not proof: generic totals/payouts, payment methods presented as channels, competing financial columns, duplicate sales sheets, uncertain per-unit costs and conflicting product costs require a decision.
+3. Clear files activate immediately and navigate to `/dashboard`, which announces **Data berhasil diproses** and the source file. Automatic imports leave expense completeness unconfirmed, including when expense rows exist.
+4. Unclear files keep the original document locally and show one business question at a time. Users can choose a date/sales column, distinguish sales from received funds, classify an unresolved sheet, or select original sales sheets without double counting.
+5. **Atur kolom secara manual** remains available during correction and as an opt-in review before uploading. It reuses the full mapping controls and optional **Biarkan RAMU Membantu**. Its disclosure explains that the explicit AI action sends only permitted sheet/column metadata, never cell values. AI suggestions remain strictly validated and require manual confirmation.
+6. Both paths use `prepareImportedData`, the existing `normalizeImport`/parser validation and browser-only customer-name privacy registration. Invalid/cancelled replacements leave active data and chat context intact; successful replacements reset the existing dataset-specific chat session. Business-goal storage is unchanged.
+7. Data Bisnis retains active-file status, capabilities, **Lihat Mapping**, replacement and deletion. The mapping summary describes the interpretation actually used, including explicitly ignored sheets/columns.
+
+Conservative limits: unknown populated sheets are never silently ignored; multiple sales sheets need explicit selection/confirmation; subtotal rows mixed into transaction rows need correction in the source file. A generic total or per-unit cost can need one short confirmation. No cash-flow, forecasting or new financial formula is inferred.
 
 Sheet names are flexible, including Penjualan, Sales, Transaksi April, Orders, Data Penjualan, Produk, Master Produk, Biaya, Expenses, and Pengeluaran. Users can explicitly classify any sheet as sales, products, expenses, or ignored. Multiple sales sheets can be combined, up to the normalized transaction limit.
 

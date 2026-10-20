@@ -32,9 +32,7 @@ export function MappingSummary({
       <h2 ref={headingRef} tabIndex={-1} className="content-navigation-target">
         Cara RAMU membaca data
       </h2>
-      <p className="supporting">
-        Ringkasan pilihan kolom yang telah dikonfirmasi.
-      </p>
+      <p className="supporting">Ringkasan cara RAMU membaca kolom file Anda.</p>
       {summary ? (
         summary.sheets.map((sheet, i) => (
           <div className="mapping-summary-sheet" key={i}>

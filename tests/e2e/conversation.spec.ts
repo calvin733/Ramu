@@ -176,9 +176,7 @@ test("replacing data resets memory/aliases and an old pending answer cannot ente
       "date,order_id,product_name,quantity,unit_price,channel,nama_pelanggan\n2026-09-20,NEW001,Kopi,2,50000,Toko,Siti Nurhaliza",
     ),
   });
-  await page
-    .getByRole("button", { name: "Konfirmasi & Analisis Data" })
-    .click();
+  await expect(page).toHaveURL(/\/dashboard$/);
   await navigate(page, "Tanya RAMU");
   await expect(page.locator(".chat-message")).toHaveCount(0);
   release();

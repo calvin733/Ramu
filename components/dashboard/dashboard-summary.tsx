@@ -1,81 +1,91 @@
-import {
-  CircleDollarSign,
-  Receipt,
-  ShoppingBag,
-  Wallet,
-  Package,
-} from "lucide-react";
+import { CircleDollarSign, Receipt, ShoppingBag, Wallet } from "lucide-react";
 import { KpiCard } from "./kpi-card";
 import type { BusinessMetrics } from "@/lib/types";
-import { formatRupiah, formatNumber } from "@/lib/utils";
+import {
+  formatDate,
+  formatPercentage,
+  formatRupiah,
+  formatNumber,
+} from "@/lib/utils";
 export function DashboardSummary({ metrics: m }: { metrics: BusinessMetrics }) {
   return (
     <section className="executive-summary" aria-label="Ringkasan bisnis">
       <div className="period-row">
-        <span>Ringkasan {m.period.days} hari terakhir dalam data</span>
-        <span>Dibanding periode sebelumnya dengan durasi sama</span>
+        <span>
+          Ringkasan {formatDate(m.period.start)}–{formatDate(m.period.end)}
+        </span>
+        <span>
+          {m.revenueGrowth === null
+            ? "Perbandingan penjualan yang setara belum tersedia"
+            : `Dibanding ${m.period.days} hari sebelumnya`}
+        </span>
       </div>
       <div className="kpi-grid">
         <KpiCard
-          label="Pendapatan"
+          label="Penjualan"
           value={formatRupiah(m.revenue)}
-          growth={m.revenueGrowth}
+          growth={null}
+          note="Penjualan tercatat, bukan dana diterima"
           days={m.period.days}
           icon={Wallet}
         />
-        <KpiCard
-          label="Laba Kotor"
-          unavailable={m.grossProfit === null}
-          value={
-            m.grossProfit === null
-              ? "Belum tersedia"
-              : formatRupiah(m.grossProfit)
-          }
-          growth={m.profitGrowth}
-          days={m.period.days}
-          icon={CircleDollarSign}
-          note={
-            m.grossProfit === null
-              ? "Lengkapi jumlah terjual dan biaya produk"
-              : undefined
-          }
-        />
-        <KpiCard
-          label="Pesanan"
-          unavailable={!m.capabilities.orders}
-          value={
-            m.capabilities.orders ? formatNumber(m.orders) : "Belum tersedia"
-          }
-          growth={m.orderGrowth}
-          days={m.period.days}
-          icon={ShoppingBag}
-          note={!m.capabilities.orders ? "Tambahkan nomor pesanan" : undefined}
-        />
-        <KpiCard
-          label="Rata-rata Nilai Transaksi"
-          unavailable={!m.capabilities.orders}
-          value={m.capabilities.orders ? formatRupiah(m.aov) : "Belum tersedia"}
-          growth={m.aovGrowth}
-          days={m.period.days}
-          icon={Receipt}
-          note={!m.capabilities.orders ? "Tambahkan nomor pesanan" : undefined}
-        />
-        <KpiCard
-          label="Unit Terjual"
-          unavailable={!m.capabilities.units}
-          value={
-            m.capabilities.units ? formatNumber(m.units) : "Belum tersedia"
-          }
-          growth={null}
-          days={m.period.days}
-          icon={Package}
-          note={
-            !m.capabilities.units
-              ? "Tambahkan jumlah unit"
-              : `Dalam ${m.period.days} hari ringkasan`
-          }
-        />
+        {m.revenueGrowth !== null && (
+          <KpiCard
+            label="Perubahan Penjualan"
+            value={`${m.revenueGrowth > 0 ? "+" : ""}${formatPercentage(m.revenueGrowth)}`}
+            growth={null}
+            note={`vs ${m.period.days} hari sebelumnya`}
+            days={m.period.days}
+            icon={Receipt}
+          />
+        )}
+        {m.capabilities.orders && (
+          <KpiCard
+            label="Pesanan"
+            value={formatNumber(m.orders)}
+            growth={m.orderGrowth}
+            days={m.period.days}
+            icon={ShoppingBag}
+          />
+        )}
+        {m.grossProfit !== null && (
+          <KpiCard
+            label="Laba Kotor"
+            value={formatRupiah(m.grossProfit)}
+            growth={m.profitGrowth}
+            days={m.period.days}
+            icon={CircleDollarSign}
+            note="Sebelum biaya operasional dan pajak"
+          />
+        )}
       </div>
+      {(m.capabilities.orders ||
+        m.capabilities.units ||
+        m.grossMargin !== null) && (
+        <details className="summary-more">
+          <summary>Angka lainnya</summary>
+          <dl>
+            {m.capabilities.orders && (
+              <div>
+                <dt>Rata-rata nilai transaksi</dt>
+                <dd>{formatRupiah(m.aov)}</dd>
+              </div>
+            )}
+            {m.capabilities.units && (
+              <div>
+                <dt>Unit terjual</dt>
+                <dd>{formatNumber(m.units)}</dd>
+              </div>
+            )}
+            {m.grossMargin !== null && (
+              <div>
+                <dt>Margin kotor</dt>
+                <dd>{formatPercentage(m.grossMargin)}</dd>
+              </div>
+            )}
+          </dl>
+        </details>
+      )}
     </section>
   );
 }

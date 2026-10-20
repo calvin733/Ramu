@@ -10,7 +10,13 @@ import {
 } from "@/lib/goals";
 import { formatPercentage } from "@/lib/utils";
 
-export function GoalPreview({ progress: p }: { progress: GoalProgress }) {
+export function GoalPreview({
+  progress: p,
+  showPace = true,
+}: {
+  progress: GoalProgress;
+  showPace?: boolean;
+}) {
   return (
     <article className="goal-preview-card">
       <h3>
@@ -32,7 +38,7 @@ export function GoalPreview({ progress: p }: { progress: GoalProgress }) {
           <span>{p.daysRemaining} hari tersisa</span>
         </p>
       )}
-      <GoalPaceMessage progress={p} />
+      {showPace && <GoalPaceMessage progress={p} />}
     </article>
   );
 }

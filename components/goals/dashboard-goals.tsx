@@ -3,8 +3,10 @@ import Link from "next/link";
 import { useBusiness } from "@/components/business-provider";
 import { Button } from "@/components/ui/button";
 import { GoalPreview } from "@/components/dashboard/goal-preview";
-export function DashboardGoals() {
+import { relevantGoals } from "@/lib/dashboard/decisions";
+export function DashboardGoals({ coachedGoalId }: { coachedGoalId?: string }) {
   const { goalProgress } = useBusiness();
+  const preview = relevantGoals(goalProgress).slice(0, 1);
   return (
     <section
       className="panel dashboard-goals"
@@ -22,8 +24,12 @@ export function DashboardGoals() {
       </div>
       {goalProgress.length ? (
         <div className="goal-grid">
-          {goalProgress.slice(0, 2).map((p) => (
-            <GoalPreview key={p.goal.id} progress={p} />
+          {preview.map((p) => (
+            <GoalPreview
+              key={p.goal.id}
+              progress={p}
+              showPace={p.goal.id !== coachedGoalId}
+            />
           ))}
         </div>
       ) : (

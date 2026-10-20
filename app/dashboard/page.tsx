@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useBusiness } from "@/components/business-provider";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import {
 } from "@/lib/queries/aggregates";
 import type { BusinessMetrics, BusinessInsight } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
+import { dashboardDecisions } from "@/lib/dashboard/decisions";
 function ExecutiveDashboard({
   metrics,
   insights,
@@ -29,34 +30,37 @@ function ExecutiveDashboard({
   const { goalProgress } = useBusiness();
   const [unit, setUnit] = useState<TrendUnit>(() => defaultTrendUnit(metrics));
   const hasChannels = channelPerformance(metrics).length > 0;
+  const decisions = dashboardDecisions(metrics, insights, goalProgress);
   return (
     <>
       <DashboardSummary metrics={metrics} />
       <div
-        className={`executive-grid ${hasChannels ? "" : "without-channels"} ${metrics.capabilities.products ? "" : "without-products"}`}
+        className={`executive-grid decision-grid ${hasChannels ? "" : "without-channels"} ${metrics.capabilities.products ? "" : "without-products"}`}
       >
+        <BusinessPulse decision={decisions[0]} />
         <RevenueChart metrics={metrics} unit={unit} onUnitChange={setUnit} />
-        <BusinessPulse
-          metrics={metrics}
-          insights={insights}
-          goals={goalProgress}
-        />
-        <ChannelPerformance metrics={metrics} />
-        {metrics.capabilities.products && <ProductPreview metrics={metrics} />}
         <PeriodHighlights metrics={metrics} unit={unit} />
-        <InsightSection metrics={metrics} insights={insights} />
-        <DashboardGoals />
+        {metrics.capabilities.products && <ProductPreview metrics={metrics} />}
+        <ChannelPerformance metrics={metrics} />
+        <InsightSection metrics={metrics} insights={decisions.slice(1)} />
+        <DashboardGoals coachedGoalId={decisions[0].goalId} />
       </div>
     </>
   );
 }
 export default function Dashboard() {
   const { data, metrics, insights } = useBusiness();
+  const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (data) heading.current?.focus({ preventScroll: true });
+  }, [data]);
   return (
     <div className="page dashboard-page">
       <div className="page-heading dashboard-intro">
         <div>
-          <h1>Dashboard</h1>
+          <h1 ref={heading} tabIndex={-1}>
+            Dashboard
+          </h1>
           <p>Ringkasan kondisi bisnis Anda</p>
         </div>
         <div className="dashboard-intro-actions">
@@ -70,6 +74,11 @@ export default function Dashboard() {
           </Button>
         </div>
       </div>
+      {data?.source.kind === "upload" && (
+        <p className="processed-confirmation" role="status">
+          Data berhasil diproses · {data.source.name}
+        </p>
+      )}
       {!metrics || !data ? (
         <EmptyState />
       ) : (

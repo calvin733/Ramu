@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState, type Ref } from "react";
+import { useRef, useState, type RefObject } from "react";
 import {
   ArrowRight,
   Download,
@@ -11,20 +11,24 @@ import {
   UploadCloud,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MappingReview } from "@/components/mapping-review";
-import { DataValidationError } from "@/lib/parsers";
-import {
-  inspectFile,
-  normalizeImport,
-  type ImportDocument,
-} from "@/lib/mapping";
+import { ImportClarification } from "./import-clarification";
+import { inspectFile, type ImportDocument } from "@/lib/mapping";
 import type { UploadedData } from "@/lib/types";
 import type { MappingSummaryData } from "./mapping-summary";
 import { downloadCsvTemplate, downloadWorkbook } from "@/lib/templates";
 import { cn } from "@/lib/utils";
 import { GlassSurface } from "@/components/glass/glass-surface";
 import { GlassButton } from "@/components/glass/glass-button";
-import { registerImportedPrivacy } from "@/lib/chat/import-privacy";
+import {
+  assessAutomaticImport,
+  prepareImportedData,
+  resolveImportIssue,
+  friendlyImportError,
+  type ImportAssessment,
+  type ImportConfirmations,
+  type ImportIssue,
+} from "@/lib/mapping/automatic";
+import { useContentNavigation } from "@/components/hooks/use-content-navigation";
 
 export function UploadDataSection({
   replacing,
@@ -37,32 +41,96 @@ export function UploadDataSection({
   onProcessed: (data: UploadedData, mapping: MappingSummaryData) => void;
   onDemo: () => void;
   onCancel: () => void;
-  headingRef?: Ref<HTMLHeadingElement>;
+  headingRef?: RefObject<HTMLHeadingElement | null>;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const processing = useRef(false);
+  const completed = useRef(false);
+  const correctionHeading = useRef<HTMLHeadingElement>(null);
+  const uploadHeading = useRef<HTMLHeadingElement>(null);
+  const navigateTo = useContentNavigation();
   const [busy, setBusy] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [reviewFirst, setReviewFirst] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [document, setDocument] = useState<ImportDocument | null>(null);
+  const [assessment, setAssessment] = useState<Exclude<
+    ImportAssessment,
+    { kind: "ready" }
+  > | null>(null);
+  const [confirmed, setConfirmed] = useState<ImportConfirmations>(new Set());
+  function finish(document: ImportDocument, data: UploadedData) {
+    if (completed.current) return;
+    completed.current = true;
+    setBusy(true);
+    onProcessed(data, {
+      loadedAt: data.source.loadedAt,
+      sheets: document.sheets.map((sheet) => ({
+        name: sheet.name,
+        sheetType: sheet.sheetType,
+        mapping: sheet.mapping.map(({ source, target }) => ({
+          source,
+          target,
+        })),
+      })),
+    });
+  }
+  function review(
+    document: ImportDocument,
+    confirmations: ImportConfirmations = new Set(),
+  ) {
+    const next = assessAutomaticImport(document, confirmations);
+    if (next.kind === "ready") finish(document, next.data);
+    else {
+      setDocument(document);
+      setAssessment(next);
+      setConfirmed(confirmations);
+      navigateTo(correctionHeading);
+    }
+  }
+  function answer(issue: ImportIssue, value: string) {
+    if (!document || processing.current || completed.current) return;
+    const next = resolveImportIssue(document, issue, value, confirmed);
+    review(next.document, next.confirmed);
+  }
+  function cancelFile() {
+    setDocument(null);
+    setAssessment(null);
+    setError(null);
+    navigateTo(headingRef ?? uploadHeading);
+  }
+  function confirmManual(complete: boolean) {
+    if (!document || processing.current || completed.current) return;
+    processing.current = true;
+    setBusy(true);
+    try {
+      finish(document, prepareImportedData(document, complete));
+    } catch (error) {
+      setAssessment({ kind: "invalid", message: friendlyImportError(error) });
+      navigateTo(correctionHeading);
+    } finally {
+      processing.current = false;
+      setBusy(false);
+    }
+  }
   async function upload(file?: File) {
-    if (!file || processing.current) return;
+    if (!file || processing.current || completed.current) return;
     processing.current = true;
     setBusy(true);
     setError(null);
     setDocument(null);
+    setAssessment(null);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 20));
-      setDocument(await inspectFile(file));
+      const inspected = await inspectFile(file);
+      if (reviewFirst) {
+        setDocument(inspected);
+        navigateTo(correctionHeading);
+      } else review(inspected);
     } catch (error) {
-      setError(
-        error instanceof DataValidationError
-          ? error.message
-          : "Data tidak dapat diproses. Silakan periksa isi file dan coba lagi.",
-      );
+      setError(friendlyImportError(error));
     } finally {
       processing.current = false;
-      setBusy(false);
+      if (!completed.current) setBusy(false);
       if (input.current) input.current.value = "";
     }
   }
@@ -75,7 +143,7 @@ export function UploadDataSection({
         <div>
           <h2
             id="connect-data-title"
-            ref={headingRef}
+            ref={headingRef ?? uploadHeading}
             tabIndex={-1}
             className="content-navigation-target"
           >
@@ -124,11 +192,13 @@ export function UploadDataSection({
               )}
             </span>
             <h3>
-              {busy ? "RAMU sedang membaca file..." : "Upload Excel / CSV"}
+              {busy
+                ? "Menyiapkan analisis bisnis Anda..."
+                : "Upload Excel / CSV"}
             </h3>
             <p>
               {busy
-                ? "Mengenali sheet dan kolom sebelum Anda mengonfirmasi."
+                ? "RAMU sedang membaca dan memeriksa data."
                 : "Tarik file ke sini atau pilih dari perangkat Anda."}
             </p>
             <GlassButton disabled={busy} onClick={() => input.current?.click()}>
@@ -148,6 +218,20 @@ export function UploadDataSection({
             <span className="upload-restrictions">
               .xlsx atau .csv · Maks. 10 MB
             </span>
+            {!document && (
+              <details className="manual-upload-option">
+                <summary>Atur kolom secara manual</summary>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={reviewFirst}
+                    disabled={busy}
+                    onChange={(e) => setReviewFirst(e.target.checked)}
+                  />
+                  Tinjau kolom sebelum data diaktifkan
+                </label>
+              </details>
+            )}
           </div>
           <div className="upload-footnote">
             <ShieldCheck size={15} />
@@ -203,49 +287,28 @@ export function UploadDataSection({
         </section>
       </GlassSurface>
       {document && (
-        <MappingReview
+        <ImportClarification
           document={document}
+          assessment={assessment}
+          busy={busy}
+          headingRef={correctionHeading}
+          onAnswer={answer}
           onChange={(updated) =>
             setDocument((current) => (current === document ? updated : current))
           }
-          onCancel={() => {
-            setDocument(null);
-            setError(null);
-          }}
-          onConfirm={(complete) => {
-            try {
-              const data = normalizeImport(document, complete);
-              registerImportedPrivacy(data, document);
-              onProcessed(data, {
-                loadedAt: data.source.loadedAt,
-                sheets: document.sheets.map((sheet) => ({
-                  name: sheet.name,
-                  sheetType: sheet.sheetType,
-                  mapping: sheet.mapping.map(({ source, target }) => ({
-                    source,
-                    target,
-                  })),
-                })),
-              });
-            } catch (error) {
-              setError(
-                error instanceof Error
-                  ? error.message
-                  : "Periksa pilihan kolom Anda.",
-              );
-            }
-          }}
+          onCancel={cancelFile}
+          onConfirm={confirmManual}
         />
       )}
       {error && (
         <div className="upload-error" role="alert">
           <TriangleAlert size={22} />
           <div>
-            <h3>RAMU belum dapat mengenali beberapa bagian data Anda.</h3>
+            <h3>File belum bisa diproses.</h3>
             <p>{error}</p>
             <p>
-              Pilih kolom tanggal dan pendapatan, atau jumlah dan harga. Gunakan
-              Atur Kolom untuk melanjutkan.
+              Periksa file lalu coba lagi. Anda dapat memilih kolom bila RAMU
+              membutuhkan penjelasan.
             </p>
             {replacing && (
               <span>Data yang sebelumnya digunakan tetap tersedia.</span>
@@ -292,7 +355,7 @@ export function UploadDataSection({
               Pengeluaran lengkap diperlukan untuk laba bersih.
             </li>
             <li>
-              Nama sheet bebas. Periksa jenis data dan kolom sebelum konfirmasi.
+              Nama sheet bebas. RAMU hanya menanyakan bagian yang belum jelas.
               Batas 50.000 baris per sheet.
             </li>
             <li>

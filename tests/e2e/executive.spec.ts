@@ -14,18 +14,18 @@ test("executive overview fits the first desktop viewport and keeps header seamle
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/dashboard");
   await page.getByRole("button", { name: "Gunakan Data Demo" }).click();
-  await expect(page.locator(".kpi-card")).toHaveCount(5);
-  await expect(page.locator(".kpi-card").last()).toContainText(
+  await expect(page.locator(".kpi-card")).toHaveCount(4);
+  await page.getByText("Angka lainnya", { exact: true }).click();
+  await expect(page.locator(".summary-more")).toContainText(
     metrics.units.toLocaleString("id-ID"),
   );
   const chart = await page.locator(".revenue-panel").boundingBox();
   const pulse = await page.locator(".business-pulse").boundingBox();
-  expect(Math.abs(chart!.y - pulse!.y)).toBeLessThan(2);
-  expect(chart!.y + chart!.height).toBeLessThan(900);
+  expect(pulse!.y + pulse!.height).toBeLessThanOrEqual(chart!.y);
   expect(pulse!.y + pulse!.height).toBeLessThan(900);
-  expect((await page.locator(".channel-panel").boundingBox())!.y).toBeLessThan(
-    900,
-  );
+  expect(
+    (await page.locator(".channel-panel").boundingBox())!.y,
+  ).toBeGreaterThan(chart!.y);
   expect(
     await page
       .locator(".executive-grid")
@@ -57,6 +57,7 @@ test("executive overview fits the first desktop viewport and keeps header seamle
   await expect(page.locator(".period-highlights")).toContainText(
     "Hari terbaik",
   );
+  await page.evaluate(() => window.scrollTo(0, 0));
   const top = await page.locator(".topbar").evaluate((el) => ({
     bg: getComputedStyle(el).backgroundColor,
     shadow: getComputedStyle(el).boxShadow,
@@ -78,7 +79,7 @@ test("executive overview fits the first desktop viewport and keeps header seamle
         () => document.documentElement.scrollWidth <= innerWidth,
       ),
     ).toBe(true);
-    await expect(page.locator(".kpi-card")).toHaveCount(5);
+    await expect(page.locator(".kpi-card")).toHaveCount(4);
     await expect(page.locator(".channel-panel")).toBeVisible();
     if (width <= 640) {
       const grid = await page.locator(".executive-grid").boundingBox();
@@ -127,9 +128,7 @@ test("basic chat answers channels, follow-ups, product comparisons and specific 
   await expect(await send("Siapa pelanggan terbaik?")).toContainText(
     "data pelanggan",
   );
-  await expect(await send("Prediksi bulan depan?")).toContainText(
-    "prediksi",
-  );
+  await expect(await send("Prediksi bulan depan?")).toContainText("prediksi");
   await expect(page.locator(".message-mode").last()).toHaveText(
     "Analisis dasar",
   );

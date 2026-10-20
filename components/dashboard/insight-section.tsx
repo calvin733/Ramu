@@ -33,7 +33,7 @@ export function InsightSection({
       mode: string;
     } | null>(null),
     [loading, setLoading] = useState(false);
-  const preview = insights.slice(0, 3);
+  const preview = insights.slice(0, 2);
   async function explain() {
     setLoading(true);
     try {
@@ -44,13 +44,14 @@ export function InsightSection({
       setLoading(false);
     }
   }
+  if (!preview.length) return null;
   return (
     <GlassSurface className="insights-section insight-unified">
       <div className="section-heading">
         <div>
           <div className="heading-with-icon">
             <Sparkles size={21} />
-            <h2>Yang Perlu Anda Tahu</h2>
+            <h2>Pertimbangan Lain</h2>
           </div>
         </div>
         <Button variant="ghost" asChild>
@@ -70,7 +71,10 @@ export function InsightSection({
                 <span>{label}</span>
               </div>
 
-              <p>{i.body}</p>
+              <div className="insight-text">
+                <h3>{i.title}</h3>
+                <p>{i.body}</p>
+              </div>
               <details className="insight-next-step">
                 <summary>Saran tindakan</summary>
                 <div className="insight-action">{i.action}</div>

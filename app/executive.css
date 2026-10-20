@@ -622,3 +622,196 @@
     display: block;
   }
 }
+
+/* Decision-first presentation: existing glass surfaces and deterministic facts. */
+.executive-summary .kpi-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  margin-bottom: 8px;
+}
+.summary-more {
+  margin: 0 0 16px;
+  font-size: 14px;
+}
+.summary-more summary {
+  cursor: pointer;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+.summary-more dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  margin: 8px 0;
+}
+.summary-more dl div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.summary-more dt {
+  color: var(--ramu-muted);
+}
+.summary-more dd {
+  margin: 0;
+  font-weight: 650;
+}
+.dashboard-page .decision-grid .decision-priority {
+  grid-column: span 12;
+}
+.decision-content {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr 1.1fr;
+  gap: 22px;
+  align-items: start;
+}
+.decision-content h3 {
+  font-size: 20px;
+  line-height: 1.3;
+  margin: 0 0 8px;
+}
+.decision-content p {
+  font-size: 15px;
+  line-height: 1.55;
+  margin: 0;
+}
+.decision-evidence {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+  padding-left: 18px;
+}
+.decision-evidence li + li {
+  margin-top: 6px;
+}
+.decision-next-step {
+  border-left: 2px solid var(--ramu-divider);
+  padding-left: 18px;
+}
+.decision-next-step strong {
+  display: block;
+  font-size: 13px;
+  color: var(--green);
+  margin-bottom: 5px;
+}
+.dashboard-page .decision-grid .revenue-panel {
+  grid-column: span 8;
+}
+.dashboard-page .decision-grid .period-highlights {
+  grid-column: span 4;
+}
+.dashboard-page .decision-grid .executive-products {
+  grid-column: span 8;
+}
+.dashboard-page .decision-grid .channel-panel {
+  grid-column: span 4;
+}
+.dashboard-page .decision-grid.without-channels .executive-products,
+.dashboard-page .decision-grid.without-products .channel-panel {
+  grid-column: span 12;
+}
+.dashboard-page .decision-grid .insight-text h3 {
+  font-size: 15px;
+  line-height: 1.5;
+  margin: 0 0 4px;
+}
+.dashboard-page .decision-grid .insight-text p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.dashboard-page .decision-grid:not(:has(.insights-section)) .dashboard-goals {
+  grid-column: span 12;
+}
+.processed-confirmation {
+  font-size: 14px;
+  color: var(--green);
+  margin: 0 0 14px;
+  overflow-wrap: anywhere;
+}
+.data-page .import-clarification {
+  margin: 22px 0;
+  padding: 24px;
+}
+.import-clarification h2 {
+  font-size: 20px;
+}
+.import-question {
+  max-width: 640px;
+  display: grid;
+  gap: 12px;
+  margin: 22px 0;
+}
+.import-question label {
+  font-size: 16px;
+  font-weight: 650;
+}
+.import-question select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  font-size: 15px;
+}
+.import-question .button {
+  justify-self: start;
+}
+.manual-import-disclosure {
+  margin: 16px 0;
+}
+.manual-import-disclosure > summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 14px;
+}
+.manual-import-disclosure .mapping-review {
+  margin-top: 12px;
+}
+@media (max-width: 1099px) {
+  .decision-content {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .decision-next-step {
+    grid-column: 1 / -1;
+    padding-top: 10px;
+    border-left: 0;
+    border-top: 1px solid var(--ramu-divider);
+    padding-left: 0;
+  }
+  .dashboard-page .decision-grid .revenue-panel {
+    grid-column: span 8;
+  }
+  .dashboard-page .decision-grid .period-highlights {
+    grid-column: span 4;
+  }
+  .dashboard-page .decision-grid .executive-products {
+    grid-column: span 12;
+  }
+  .dashboard-page .decision-grid .channel-panel,
+  .dashboard-page .decision-grid .insights-section,
+  .dashboard-page .decision-grid .dashboard-goals {
+    grid-column: span 6;
+  }
+}
+@media (max-width: 640px) {
+  .executive-summary .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .decision-content {
+    grid-template-columns: 1fr;
+  }
+  .decision-content h3 {
+    font-size: 19px;
+  }
+  .decision-evidence {
+    padding-left: 18px;
+  }
+  .dashboard-page .decision-grid > * {
+    grid-column: span 12 !important;
+  }
+  .data-page .import-clarification {
+    padding: 18px;
+  }
+}
